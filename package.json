@@ -12,8 +12,12 @@
     "lint": "tslint --project tsconfig.json -c tslint.json 'src/**/*.ts' 'tests/**/*.ts'"
   },
   "devDependencies": {
+    "@types/axios": "0.14.0",
     "tslint": "5.12.1",
     "tslint-config-airbnb": "5.11.1",
     "typescript": "3.3.3"
+  },
+  "dependencies": {
+    "axios": "0.18.0"
   }
 }
