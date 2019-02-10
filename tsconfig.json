@@ -2,7 +2,7 @@
   "compilerOptions": {
     "module": "commonjs",
     "esModuleInterop": true,
-    "target": "es6",
+    "target": "es5",
     "allowJs": false,
     "noImplicitAny": true,
     "noImplicitReturns": true,
@@ -29,7 +29,9 @@
     }
   },
   "exclude": [
+    "coverage",
     "lib",
-    "node_modules"
+    "node_modules",
+    "tests"
   ]
 }

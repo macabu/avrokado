@@ -2,6 +2,12 @@
   "name": "avrokado",
   "version": "0.1.0",
   "description": "A Kafka client and Avro (de)serializer library",
+  "keywords": ["Kafka", "Avro", "librdkafka", "Apache"],
+  "repository": "git@github.com:macabu/avrokado.git",
+  "bugs": {
+    "url": "https://github.com/macabu/avrokado/issues"
+  },
+  "homepage": "https://github.com/macabu/avrokado#readme",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "author": "Matheus Macabu <mkbu95@gmail.com>",
@@ -9,7 +15,7 @@
   "private": false,
   "scripts": {
     "build": "tsc",
-    "lint": "tslint --project tsconfig.json -c tslint.json 'src/**/*.ts' 'tests/**/*.ts'",
+    "lint": "tslint -p tsconfig.json -c tslint.json 'src/**/*.ts' 'tests/**/*.ts'",
     "test": "jest --verbose"
   },
   "devDependencies": {
