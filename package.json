@@ -3,11 +3,17 @@
   "version": "0.1.0",
   "description": "A Kafka client and Avro (de)serializer library",
   "main": "lib/index.js",
-  "author": "Matheus Macabu <@macabu>",
+  "types": "lib/index.d.ts",
+  "author": "Matheus Macabu <mkbu95@gmail.com>",
   "license": "MIT",
   "private": false,
+  "scripts": {
+    "build": "tsc",
+    "lint": "tslint --project tsconfig.json -c tslint.json 'src/**/*.ts' 'tests/**/*.ts'"
+  },
   "devDependencies": {
     "tslint": "5.12.1",
+    "tslint-config-airbnb": "5.11.1",
     "typescript": "3.3.3"
   }
 }
