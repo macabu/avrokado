@@ -1,0 +1,9 @@
+{
+  "name": "avrokado",
+  "version": "0.1.0",
+  "description": "A Kafka client and Avro (de)serializer library",
+  "main": "lib/index.js",
+  "author": "Matheus Macabu <@macabu>",
+  "license": "MIT",
+  "private": false
+}
