@@ -2,7 +2,12 @@
   "name": "avrokado",
   "version": "0.1.0",
   "description": "A Kafka client and Avro (de)serializer library",
-  "keywords": ["Kafka", "Avro", "librdkafka", "Apache"],
+  "keywords": [
+    "Kafka",
+    "Avro",
+    "librdkafka",
+    "Apache"
+  ],
   "repository": "git@github.com:macabu/avrokado.git",
   "bugs": {
     "url": "https://github.com/macabu/avrokado/issues"
@@ -30,6 +35,7 @@
     "typescript": "3.3.3"
   },
   "dependencies": {
+    "avsc": "5.4.7",
     "axios": "0.18.0"
   }
 }
