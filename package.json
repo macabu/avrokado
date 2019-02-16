@@ -23,6 +23,15 @@
     "lint": "tslint -p tsconfig.json -c tslint.json 'src/**/*.ts' 'tests/**/*.ts'",
     "test": "jest --verbose"
   },
+  "jest": {
+    "preset": "ts-jest/presets/js-with-ts",
+    "testEnvironment": "node",
+    "collectCoverage": true,
+    "coverageDirectory": "./coverage/",
+    "testMatch": [
+      "**/tests/**/*.test.ts"
+    ]
+  },
   "devDependencies": {
     "@types/axios": "0.14.0",
     "@types/jest": "24.0.0",
