@@ -1,10 +1,11 @@
 import axios, { AxiosResponse } from 'axios';
 
-type SchemaRegistryEndpoint = string;
-type TopicName = string | void;
-type LatestSchemaVersion = 'latest' | boolean | number;
-type SchemaFetchType = 'key' | 'value';
-export type SchemaFetchResponse = Partial<ISchemaRegistryResponse> | Partial<IFetchSchemaFailed>;
+export type SchemaRegistryEndpoint = string;
+export type TopicName = string | void;
+export type SchemaVersion = 'latest' | number;
+export type SchemaFetchType = 'key' | 'value';
+export type SchemaFetchResponse<T> = T & Partial<IFetchSchemaFailed>;
+export type SchemaFetchVersionsResponse = number[];
 
 export interface ISchemaRegistryResponse {
   subject: string;
@@ -23,7 +24,7 @@ interface IFetchSchemaFailedAxiosResponse {
 
 interface IFetchSchemaFailed {
   topicName: TopicName;
-  latest: LatestSchemaVersion;
+  schemaVersion: SchemaVersion;
   type: SchemaFetchType;
   message: string;
   axiosResponse: IFetchSchemaFailedAxiosResponse;
@@ -32,7 +33,7 @@ interface IFetchSchemaFailed {
 export const fetchSchema = async (
   schemaRegistryEndpoint: SchemaRegistryEndpoint,
   topicName: TopicName,
-  latest: LatestSchemaVersion,
+  schemaVersion: SchemaVersion,
   type: SchemaFetchType
 ) => {
   try {
@@ -42,25 +43,62 @@ export const fetchSchema = async (
     saneEndpoint += 'subjects/';
     saneEndpoint += `${topicName}-${type}/`;
     saneEndpoint += 'versions/';
-    saneEndpoint +=
-      `${(typeof latest === 'boolean' || typeof latest === 'string' ? 'latest' : latest)}`;
+    saneEndpoint += `${schemaVersion}`;
 
     const response = await axios.get(saneEndpoint);
 
     if (response && response.data && response.status === 200) {
       const { data }: AxiosResponse<ISchemaRegistryResponse> = response;
 
-      return <SchemaFetchResponse>{
+      return <SchemaFetchResponse<ISchemaRegistryResponse>>{
         ...data,
         schema: JSON.parse(<string>(data.schema as unknown)),
       };
     }
 
-    return <SchemaFetchResponse>{
+    return <SchemaFetchResponse<Partial<ISchemaRegistryResponse>>>{
       topicName,
-      latest,
+      schemaVersion,
       type,
       message: 'Schema fetch failed abnormously!',
+      httpResponse: {
+        status: response.status,
+        statusText: response.statusText,
+        method: response.request.method,
+        path: response.request.path,
+        data: response.data,
+      },
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const fetchSchemaVersions = async (
+  schemaRegistryEndpoint: SchemaRegistryEndpoint,
+  topicName: TopicName,
+  type: SchemaFetchType
+) => {
+  try {
+    let saneEndpoint = '';
+
+    saneEndpoint += `${schemaRegistryEndpoint}${(schemaRegistryEndpoint.endsWith('/') ? '' : '/')}`;
+    saneEndpoint += 'subjects/';
+    saneEndpoint += `${topicName}-${type}/`;
+    saneEndpoint += 'versions';
+
+    const response = await axios.get(saneEndpoint);
+
+    if (response && response.data && response.status === 200) {
+      const { data }: AxiosResponse<SchemaFetchResponse<SchemaFetchVersionsResponse>> = response;
+
+      return data;
+    }
+
+    return <SchemaFetchResponse<Partial<unknown>>> {
+      topicName,
+      type,
+      message: 'Schema versions fetch failed abnormously!',
       httpResponse: {
         status: response.status,
         statusText: response.statusText,

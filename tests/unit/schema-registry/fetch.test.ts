@@ -1,6 +1,6 @@
 import nock from 'nock';
 
-import { fetchSchema } from '../../../src/schema-registry';
+import { fetchSchema, fetchSchemaVersions } from '../../../src/schema-registry/fetch';
 
 nock('http://mock-schema-registry:1234')
   .persist()
@@ -24,7 +24,13 @@ nock('http://mock-schema-registry:1234')
   .reply(204)
   .persist()
   .get('/subjects/fail-topic-value/versions/latest')
-  .reply(404);
+  .reply(404)
+  .persist()
+  .get('/subjects/success-topic-value/versions')
+  .reply(200, [3, 2, 1])
+  .get('/subjects/success-bad-response-topic-value/versions')
+  .reply(204)
+  .persist();
 
 describe('Unit Test : src/schema-registry/fetch.ts', () => {
   describe('fetchSchema', () => {
@@ -32,7 +38,7 @@ describe('Unit Test : src/schema-registry/fetch.ts', () => {
       expect.assertions(5);
 
       const response =
-        await fetchSchema('http://mock-schema-registry:1234', 'success-topic', true, 'value');
+        await fetchSchema('http://mock-schema-registry:1234', 'success-topic', 'latest', 'value');
 
       expect(response).toHaveProperty('id', 263);
       expect(response).toHaveProperty('subject', 'success-topic-value');
@@ -45,7 +51,7 @@ describe('Unit Test : src/schema-registry/fetch.ts', () => {
       expect.assertions(5);
 
       const response =
-        await fetchSchema('http://mock-schema-registry:1234/', 'success-topic', true, 'value');
+        await fetchSchema('http://mock-schema-registry:1234/', 'success-topic', 'latest', 'value');
 
       expect(response).toHaveProperty('id', 263);
       expect(response).toHaveProperty('subject', 'success-topic-value');
@@ -71,7 +77,7 @@ describe('Unit Test : src/schema-registry/fetch.ts', () => {
       expect.assertions(3);
 
       const response = await fetchSchema(
-        'http://mock-schema-registry:1234', 'success-bad-response-topic', true, 'value'
+        'http://mock-schema-registry:1234', 'success-bad-response-topic', 'latest', 'value'
       );
 
       expect(response).toHaveProperty(['httpResponse', 'status'], 204);
@@ -86,7 +92,46 @@ describe('Unit Test : src/schema-registry/fetch.ts', () => {
       expect.assertions(1);
 
       await expect(
-        fetchSchema('http://mock-schema-registry:1234', 'fail-topic', true, 'value')
+        fetchSchema('http://mock-schema-registry:1234', 'fail-topic', 'latest', 'value')
+      ).rejects.toThrowError();
+    });
+  });
+
+  describe('fetchSchemaVersions', () => {
+    test('When a schema exists', async () => {
+      const response =
+        await fetchSchemaVersions('http://mock-schema-registry:1234', 'success-topic', 'value');
+
+      expect(response).toMatchObject([3, 2, 1]);
+    });
+
+    test('When a schema exists with schema registry url ending with `/`', async () => {
+      const response =
+        await fetchSchemaVersions('http://mock-schema-registry:1234/', 'success-topic', 'value');
+
+      expect(response).toMatchObject([3, 2, 1]);
+    });
+
+    test('When a schema exists but response is malformed', async () => {
+      expect.assertions(3);
+
+      const response = await fetchSchemaVersions(
+        'http://mock-schema-registry:1234', 'success-bad-response-topic', 'value'
+      );
+
+      expect(response).toHaveProperty(['httpResponse', 'status'], 204);
+      expect(response).toHaveProperty(
+        ['httpResponse', 'path'],
+        '/subjects/success-bad-response-topic-value/versions'
+      );
+      expect(response).toHaveProperty(['httpResponse', 'data'], '');
+    });
+
+    test('When a schema doesnt exist', async () => {
+      expect.assertions(1);
+
+      await expect(
+        fetchSchemaVersions('http://mock-schema-registry:1234', 'fail-topic', 'value')
       ).rejects.toThrowError();
     });
   });
