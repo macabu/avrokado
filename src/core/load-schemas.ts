@@ -35,7 +35,10 @@ export const loadSchemasByType = async (
 
       schemaMap.set(<number>schema.id, <SchemaMap>{
         version: schema.version,
-        schema: Type.forSchema(<Schema>((schema.schema) as unknown)),
+        schema: Type.forSchema(
+          <Schema>((schema.schema) as unknown),
+          { wrapUnions: true }
+        ),
       });
     } else {
       let versions;
@@ -60,7 +63,10 @@ export const loadSchemasByType = async (
 
         schemaMap.set(<number>schema.id, <SchemaMap>{
           version: schema.version,
-          schema: Type.forSchema(<Schema>((schema.schema) as unknown)),
+          schema: Type.forSchema(
+            <Schema>((schema.schema) as unknown),
+            { wrapUnions: true }
+          ),
         });
       }
     }
