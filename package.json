@@ -25,6 +25,7 @@
     "build": "tsc",
     "lint": "tslint -p tsconfig.json -c tslint.json 'src/**/*.ts' 'tests/**/*.ts'",
     "test": "jest --verbose",
+    "coverage": "codecov",
     "prepare": "yarn build",
     "prepublishOnly": "yarn test && yarn lint",
     "preversion": "yarn lint",
@@ -42,6 +43,7 @@
   "devDependencies": {
     "@types/jest": "24.0.6",
     "@types/nock": "9.3.1",
+    "codecov": "3.2.0",
     "jest": "24.1.0",
     "nock": "10.0.6",
     "ts-jest": "24.0.0",
