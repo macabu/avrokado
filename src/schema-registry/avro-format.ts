@@ -1,5 +1,7 @@
 import { Type } from 'avsc';
 
+import { SchemaMap } from '../core/load-schemas';
+
 import {
   encodeWireFormat,
   MAGIC_BYTE,
@@ -8,6 +10,13 @@ import {
   MagicByte,
   Data,
 } from './wire-format';
+
+export interface DecodedAvroChunk {
+  decoded: JSON;
+  schemaId: number;
+}
+
+type SchemaFetchType = 'key' | 'value';
 
 export const encodeAvro = (
   schema: Type,
@@ -55,4 +64,38 @@ export const decodeAvro = (
   } catch (error) {
     throw error;
   }
+};
+
+export const decodeAvroChunk = (
+  allSchemas: Map<string, Map<number, SchemaMap>>,
+  schemaType: SchemaFetchType,
+  data: Buffer
+) => {
+  const schemas = <Map<number, SchemaMap>>allSchemas.get(schemaType);
+
+  if (schemas) {
+    const schemaIds = schemas.keys();
+
+    for (let i = 0; i <= schemas.size && schemas.size; i += 1) {
+      const schemaId = schemaIds.next();
+      const schema = <SchemaMap>schemas.get(schemaId.value);
+
+      try {
+        const decoded = decodeAvro(schema.schema, schemaId.value, data);
+
+        return <DecodedAvroChunk>{
+          decoded,
+          schemaId: schemaId.value,
+        };
+      } catch (error) {
+        if (schemaId.done) {
+          throw error;
+        } else {
+          continue;
+        }
+      }
+    }
+  }
+
+  throw new TypeError('Failed to find schema size!');
 };

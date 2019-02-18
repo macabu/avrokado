@@ -1,8 +1,58 @@
+import nock from 'nock';
 import { Type, Schema } from 'avsc';
 
-import { encodeAvro, decodeAvro } from '../../../src/schema-registry/avro-format';
+import { loadSchemas } from '../../../src/core/load-schemas';
+import { encodeAvro, decodeAvro, decodeAvroChunk } from '../../../src/schema-registry/avro-format';
 
-describe('Integration Test : src/schema-registry/wire-format.ts', () => {
+nock('http://mock-schema-registry:1234')
+  .persist()
+  .get('/subjects/success-topic-value/versions/latest')
+  .reply(200, {
+    id: 263,
+    subject: 'success-topic-value',
+    version: 2,
+    schema: '{ "type": "record", "fields": [{"name": "name", "type": "string"}] }',
+  })
+  .persist()
+  .get('/subjects/success-topic-value/versions/2')
+  .reply(200, {
+    id: 263,
+    subject: 'success-topic-value',
+    version: 2,
+    schema: '{ "type": "record", "fields": [{"name": "name", "type": "string"}] }',
+  })
+  .persist()
+  .get('/subjects/success-topic-value/versions/1')
+  .reply(200, {
+    id: 261,
+    subject: 'success-topic-value',
+    version: 1,
+    schema: '{ "type": "record", "fields": [{"name": "age", "type": "int"}] }',
+  })
+  .persist()
+  .get('/subjects/success-topic-key/versions/latest')
+  .reply(200, {
+    id: 262,
+    subject: 'success-topic-key',
+    version: 1,
+    schema: '"string"',
+  })
+  .persist()
+  .get('/subjects/success-topic-key/versions/1')
+  .reply(200, {
+    id: 262,
+    subject: 'success-topic-key',
+    version: 1,
+    schema: '"string"',
+  })
+  .persist()
+  .get('/subjects/success-topic-value/versions')
+  .reply(200, [2, 1])
+  .persist()
+  .get('/subjects/success-topic-key/versions')
+  .reply(200, [1]);
+
+describe('Integration Test : src/schema-registry/avro-format.ts', () => {
   describe('encodeAvro', () => {
     test('With valid data', () => {
       expect.assertions(3);
@@ -450,6 +500,148 @@ describe('Integration Test : src/schema-registry/wire-format.ts', () => {
       expect(() => {
         decodeAvro(decodeSchema, schemaId, encoded, magicByte);
       }).toThrow();
+    });
+  });
+
+  describe('decodeAvroChunk', () => {
+    test('With valid data using latest schema', async () => {
+      expect.assertions(2);
+
+      const schema = Type.forSchema(<Schema>({
+        type: 'record',
+        fields: [
+          {
+            name: 'name',
+            type: 'string',
+          },
+        ],
+      }));
+
+      const schemaId = 263;
+
+      const data = {
+        name: 'Kiara',
+      };
+
+      const magicByte = 0x0;
+
+      const allSchemas = await loadSchemas(
+        'http://mock-schema-registry:1234',
+        'success-topic',
+        'latest'
+      );
+
+      const schemaType = 'value';
+
+      const encoded = encodeAvro(schema, schemaId, data, magicByte);
+
+      const { decoded, schemaId: dSchemaId } = decodeAvroChunk(allSchemas, schemaType, encoded);
+
+      expect(decoded).toMatchObject(data);
+      expect(dSchemaId).toBe(schemaId);
+    });
+
+    test('With valid data using all schemas', async () => {
+      expect.assertions(2);
+
+      const schema = Type.forSchema(<Schema>({
+        type: 'record',
+        fields: [
+          {
+            name: 'age',
+            type: 'int',
+          },
+        ],
+      }));
+
+      const schemaId = 261;
+
+      const data = {
+        age: 1,
+      };
+
+      const magicByte = 0x0;
+
+      const allSchemas = await loadSchemas(
+        'http://mock-schema-registry:1234',
+        'success-topic',
+        'all'
+      );
+
+      const schemaType = 'value';
+
+      const encoded = encodeAvro(schema, schemaId, data, magicByte);
+
+      const { decoded, schemaId: dSchemaId } = decodeAvroChunk(allSchemas, schemaType, encoded);
+
+      expect(decoded).toMatchObject(data);
+      expect(dSchemaId).toBe(schemaId);
+    });
+
+    test('With invalid data (magic byte)', async () => {
+      expect.assertions(1);
+
+      const schema = Type.forSchema(<Schema>({
+        type: 'record',
+        fields: [
+          {
+            name: 'age',
+            type: 'int',
+          },
+        ],
+      }));
+
+      const schemaId = 261;
+
+      const data = {
+        age: 1,
+      };
+
+      const magicByte = 0x1;
+
+      const allSchemas = await loadSchemas(
+        'http://mock-schema-registry:1234',
+        'success-topic',
+        'all'
+      );
+
+      const schemaType = 'value';
+
+      const encoded = encodeAvro(schema, schemaId, data, magicByte);
+
+      expect(() => {
+        decodeAvroChunk(allSchemas, schemaType, encoded);
+      }).toThrow();
+    });
+
+    test('With no schemas', async () => {
+      expect.assertions(1);
+
+      const schema = Type.forSchema(<Schema>({
+        type: 'record',
+        fields: [
+          {
+            name: 'age',
+            type: 'int',
+          },
+        ],
+      }));
+
+      const schemaId = 261;
+
+      const data = {
+        age: 1,
+      };
+
+      const magicByte = 0x0;
+
+      const schemaType = 'value';
+
+      const encoded = encodeAvro(schema, schemaId, data, magicByte);
+
+      expect(() => {
+        decodeAvroChunk(new Map(), schemaType, encoded);
+      }).toThrow(TypeError);
     });
   });
 });
