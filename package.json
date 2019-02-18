@@ -15,13 +15,18 @@
   "homepage": "https://github.com/macabu/avrokado#readme",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
+  "files": ["lib/**/*"],
   "author": "Matheus Macabu <mkbu95@gmail.com>",
   "license": "MIT",
   "private": false,
   "scripts": {
     "build": "tsc",
     "lint": "tslint -p tsconfig.json -c tslint.json 'src/**/*.ts' 'tests/**/*.ts'",
-    "test": "jest --verbose"
+    "test": "jest --verbose",
+    "prepare": "yarn build",
+    "prepublishOnly": "yarn test && yarn lint",
+    "preversion": "yarn lint",
+    "postversion": "git push && git push --tags"
   },
   "jest": {
     "preset": "ts-jest/presets/js-with-ts",
