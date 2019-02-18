@@ -1,6 +1,10 @@
 # Avrokado
 
-:avocado: A Kafka client and Avro (de)serializer library
+:avocado: A Kafka client and Avro (de)serializer library  
+  
+[![npm](https://img.shields.io/npm/v/avrokado.svg?style=flat)](https://www.npmjs.org/package/avrokado)
+![CircleCI](https://img.shields.io/circleci/project/github/macabu/avrokado.svg?style=flat)
+![GitHub](https://img.shields.io/github/license/macabu/avrokado.svg?style=flat)
 
 ---
 
