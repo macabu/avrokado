@@ -9,6 +9,11 @@ import {
   SchemaFetchType,
 } from '../schema-registry/fetch';
 
+export interface SchemaMap {
+  version: number;
+  schema: Type;
+}
+
 type SchemaVersionsRequested = SchemaVersion | 'all';
 
 export const loadSchemasByType = async (
@@ -18,7 +23,7 @@ export const loadSchemasByType = async (
   type: SchemaFetchType
 ) => {
   try {
-    const schemaMap = new Map();
+    const schemaMap = new Map<number, SchemaMap>();
 
     if (schemaVersions === 'latest') {
       const schema = await fetchSchema(
@@ -28,7 +33,7 @@ export const loadSchemasByType = async (
         type
       );
 
-      schemaMap.set(schema.id, {
+      schemaMap.set(<number>schema.id, <SchemaMap>{
         version: schema.version,
         schema: Type.forSchema(<Schema>((schema.schema) as unknown)),
       });
@@ -53,7 +58,7 @@ export const loadSchemasByType = async (
           type
         );
 
-        schemaMap.set(schema.id, {
+        schemaMap.set(<number>schema.id, <SchemaMap>{
           version: schema.version,
           schema: Type.forSchema(<Schema>((schema.schema) as unknown)),
         });
@@ -72,7 +77,7 @@ export const loadSchemas = async (
   schemaVersions: SchemaVersionsRequested
 ) => {
   try {
-    const topicSchemaMap = new Map();
+    const topicSchemaMap = new Map<string, Map<number, SchemaMap>>();
 
     const valueSchemasMap =
       await loadSchemasByType(schemaRegistryEndpoint, topicName, schemaVersions, 'value');

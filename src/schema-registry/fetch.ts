@@ -1,7 +1,7 @@
 import axios, { AxiosResponse } from 'axios';
 
 export type SchemaRegistryEndpoint = string;
-export type TopicName = string | void;
+export type TopicName = string;
 export type SchemaVersion = 'latest' | number;
 export type SchemaFetchType = 'key' | 'value';
 export type SchemaFetchResponse<T> = T & Partial<IFetchSchemaFailed>;

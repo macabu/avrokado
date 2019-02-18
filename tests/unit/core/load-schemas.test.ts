@@ -55,6 +55,7 @@ nock('http://mock-schema-registry:1234')
   .persist()
   .get('/subjects/success-topic-value/versions')
   .reply(200, [2, 1])
+  .persist()
   .get('/subjects/success-bad-response-topic-value/versions')
   .reply(204)
   .persist();
@@ -71,7 +72,7 @@ describe('Unit Test : src/core/load-schemas.ts', () => {
         'value'
       );
 
-      const schema = JSON.parse(response.get(263).schema);
+      const schema = JSON.parse(response.get(263)!.schema as unknown as string);
 
       expect(typeof response).toBe('object');
       expect(response.has(263)).toBeTruthy();
@@ -90,8 +91,8 @@ describe('Unit Test : src/core/load-schemas.ts', () => {
         'value'
       );
 
-      const firstSchema = JSON.parse(response.get(262).schema);
-      const latestSchema = JSON.parse(response.get(263).schema);
+      const firstSchema = JSON.parse(response.get(262)!.schema as unknown as string);
+      const latestSchema = JSON.parse(response.get(263)!.schema as unknown as string);
 
       expect(typeof response).toBe('object');
       expect(response.has(262)).toBeTruthy();
@@ -112,7 +113,7 @@ describe('Unit Test : src/core/load-schemas.ts', () => {
         'value'
       );
 
-      const schema = JSON.parse(response.get(263).schema);
+      const schema = JSON.parse(response.get(263)!.schema as unknown as string);
 
       expect(typeof response).toBe('object');
       expect(response.has(263)).toBeTruthy();
@@ -145,8 +146,8 @@ describe('Unit Test : src/core/load-schemas.ts', () => {
         'latest'
       );
 
-      const valueSchemas = response.get('value');
-      const keySchemas = response.get('key');
+      const valueSchemas = response.get('value')!;
+      const keySchemas = response.get('key')!;
 
       expect(typeof response).toBe('object');
       expect(typeof valueSchemas).toBe('object');
