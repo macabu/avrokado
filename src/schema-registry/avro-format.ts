@@ -80,6 +80,14 @@ export const encodeAvroChunk = (
   if (schemas && schemas.length) {
     for (let i = schemas.length; i >= 0; i -= 1) {
       try {
+        if (!schemas[i]) {
+          if (i === 0) {
+            throw new TypeError('Could not find schema');
+          } else {
+            continue;
+          }
+        }
+
         return <Data>encodeAvro(schemas[i].schema, i, data);
       } catch (error) {
         if (i === 0) {
@@ -104,6 +112,14 @@ export const decodeAvroChunk = (
   if (schemas && schemas.length) {
     for (let i = schemas.length; i >= 0; i -= 1) {
       try {
+        if (!schemas[i]) {
+          if (i === 0) {
+            throw new TypeError('Could not find schema');
+          } else {
+            continue;
+          }
+        }
+
         const decoded = decodeAvro(schemas[i].schema, i, data);
 
         return <DecodedAvroChunk>{
