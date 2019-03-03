@@ -1,6 +1,6 @@
 import { ConsumerStream, createReadStream } from 'node-rdkafka';
 
-import { SchemaMap } from '../core/load-schemas';
+import { SchemaObject } from '../core/load-schemas';
 import { decodeAvroChunk, DecodedAvroChunk } from '../schema-registry/avro-format';
 
 interface Chunk {
@@ -33,7 +33,7 @@ export const consumerStream = (
   consumerConfiguration: Object = {},
   defaultTopicConfiguration: Object = {},
   streamOptions: Object = {},
-  schemas: Map<string, Map<number, SchemaMap>>,
+  schemas: Map<string, SchemaObject[]>,
   readStream: CreateReadStream = createReadStream
 ) => {
   const consumerStream = readStream(
