@@ -6,7 +6,10 @@
     "Kafka",
     "Avro",
     "librdkafka",
-    "Apache"
+    "Apache",
+    "stream",
+    "consumer",
+    "producer"
   ],
   "repository": "git@github.com:macabu/avrokado.git",
   "bugs": {
