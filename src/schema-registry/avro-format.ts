@@ -1,6 +1,6 @@
 import { Type } from 'avsc';
 
-import { SchemaMap } from '../core/load-schemas';
+import { SchemaObject } from '../core/load-schemas';
 
 import {
   encodeWireFormat,
@@ -21,17 +21,17 @@ type SchemaFetchType = 'key' | 'value';
 export const encodeAvro = (
   schema: Type,
   schemaId: SchemaId,
-  data: Object,
+  data: unknown,
   magicByte: MagicByte = MAGIC_BYTE
 ) => {
   try {
-    if (!data || !Object.keys(data).length) {
+    if (!data || (typeof data === 'object' && !Object.keys(<Object>data).length)) {
       throw new TypeError('Data cannot be empty');
     }
 
     const bufData = schema.toBuffer(data);
 
-    return encodeWireFormat(bufData, schemaId, magicByte);
+    return <Data>encodeWireFormat(bufData, schemaId, magicByte);
   } catch (error) {
     throw error;
   }
@@ -66,29 +66,52 @@ export const decodeAvro = (
   }
 };
 
+export const encodeAvroChunk = (
+  allSchemas: Map<string, SchemaObject[]>,
+  schemaType: SchemaFetchType,
+  data?: unknown
+) => {
+  if (!data || (typeof data === 'object' && !Object.keys(<Object>data).length)) {
+    return Buffer.alloc(0);
+  }
+
+  const schemas = <SchemaObject[]>allSchemas.get(schemaType);
+
+  if (schemas && schemas.length) {
+    for (let i = schemas.length; i >= 0; i -= 1) {
+      try {
+        return <Data>encodeAvro(schemas[i].schema, i, data);
+      } catch (error) {
+        if (i === 0) {
+          throw error;
+        } else {
+          continue;
+        }
+      }
+    }
+  }
+
+  throw new TypeError('Failed to find schema size!');
+};
+
 export const decodeAvroChunk = (
-  allSchemas: Map<string, Map<number, SchemaMap>>,
+  allSchemas: Map<string, SchemaObject[]>,
   schemaType: SchemaFetchType,
   data: Buffer
 ) => {
-  const schemas = <Map<number, SchemaMap>>allSchemas.get(schemaType);
+  const schemas = <SchemaObject[]>allSchemas.get(schemaType);
 
-  if (schemas) {
-    const schemaIds = schemas.keys();
-
-    for (let i = 0; i <= schemas.size && schemas.size; i += 1) {
-      const schemaId = schemaIds.next();
-      const schema = <SchemaMap>schemas.get(schemaId.value);
-
+  if (schemas && schemas.length) {
+    for (let i = schemas.length; i >= 0; i -= 1) {
       try {
-        const decoded = decodeAvro(schema.schema, schemaId.value, data);
+        const decoded = decodeAvro(schemas[i].schema, i, data);
 
         return <DecodedAvroChunk>{
           decoded,
-          schemaId: schemaId.value,
+          schemaId: i,
         };
       } catch (error) {
-        if (schemaId.done) {
+        if (i === 0) {
           throw error;
         } else {
           continue;

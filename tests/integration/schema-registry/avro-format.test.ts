@@ -2,7 +2,12 @@ import nock from 'nock';
 import { Type, Schema } from 'avsc';
 
 import { loadSchemas } from '../../../src/core/load-schemas';
-import { encodeAvro, decodeAvro, decodeAvroChunk } from '../../../src/schema-registry/avro-format';
+import {
+  encodeAvro,
+  decodeAvro,
+  encodeAvroChunk,
+  decodeAvroChunk,
+} from '../../../src/schema-registry/avro-format';
 
 nock('http://mock-schema-registry:1234')
   .persist()
@@ -642,6 +647,98 @@ describe('Integration Test : src/schema-registry/avro-format.ts', () => {
       expect(() => {
         decodeAvroChunk(new Map(), schemaType, encoded);
       }).toThrow(TypeError);
+    });
+  });
+
+  describe('encodeAvroChunk', () => {
+    test('With valid data using latest schema', async () => {
+      expect.assertions(5);
+
+      const data = {
+        name: 'Kiara',
+      };
+
+      const allSchemas = await loadSchemas(
+        'http://mock-schema-registry:1234',
+        'success-topic',
+        'latest'
+      );
+
+      const schemaType = 'value';
+
+      const encodedValue = encodeAvroChunk(allSchemas, schemaType, data);
+
+      expect(encodedValue).toBeTruthy();
+      expect(typeof encodedValue).toBe('object');
+      expect(Buffer.isBuffer(encodedValue)).toBeTruthy();
+      expect(encodedValue[0]).toBe(0);
+      expect(encodedValue.readInt32BE(1)).toBe(263);
+    });
+
+    test('With valid data using all schemas', async () => {
+      expect.assertions(5);
+
+      const data = {
+        age: 1,
+      };
+
+      const allSchemas = await loadSchemas(
+        'http://mock-schema-registry:1234',
+        'success-topic',
+        'all'
+      );
+
+      const schemaType = 'value';
+
+      const encodedValue = encodeAvroChunk(allSchemas, schemaType, data);
+
+      expect(encodedValue).toBeTruthy();
+      expect(typeof encodedValue).toBe('object');
+      expect(Buffer.isBuffer(encodedValue)).toBeTruthy();
+      expect(encodedValue[0]).toBe(0);
+      expect(encodedValue.readInt32BE(1)).toBe(261);
+    });
+
+    test('With no data', async () => {
+      expect.assertions(1);
+
+      const schemaType = 'value';
+
+      const encodedValue = encodeAvroChunk(new Map(), schemaType);
+
+      expect(encodedValue).toHaveLength(0);
+    });
+
+    test('With no schemas', async () => {
+      expect.assertions(1);
+
+      const data = {
+        age: 1,
+      };
+
+      const schemaType = 'value';
+
+      expect(() => {
+        encodeAvroChunk(new Map(), schemaType, data);
+      }).toThrow(TypeError);
+    });
+
+    test('With invalid data', async () => {
+      expect.assertions(1);
+
+      const data = 'Kiara';
+
+      const allSchemas = await loadSchemas(
+        'http://mock-schema-registry:1234',
+        'success-topic',
+        'all'
+      );
+
+      const schemaType = 'value';
+
+      expect(() => {
+        encodeAvroChunk(allSchemas, schemaType, data);
+      }).toThrow();
     });
   });
 });
