@@ -72,11 +72,11 @@ describe('Unit Test : src/core/load-schemas.ts', () => {
         'value'
       );
 
-      const schema = JSON.parse(response.get(263)!.schema as unknown as string);
+      const schema = JSON.parse(response[263]!.schema as unknown as string);
 
       expect(typeof response).toBe('object');
-      expect(response.has(263)).toBeTruthy();
-      expect(response.get(263)).toHaveProperty('version', 2);
+      expect(response[263]).toBeTruthy();
+      expect(response[263]).toHaveProperty('version', 2);
       expect(schema).toHaveProperty('type', 'record');
       expect(schema).toHaveProperty('fields');
     });
@@ -91,14 +91,14 @@ describe('Unit Test : src/core/load-schemas.ts', () => {
         'value'
       );
 
-      const firstSchema = JSON.parse(response.get(262)!.schema as unknown as string);
-      const latestSchema = JSON.parse(response.get(263)!.schema as unknown as string);
+      const firstSchema = JSON.parse(response[262]!.schema as unknown as string);
+      const latestSchema = JSON.parse(response[263]!.schema as unknown as string);
 
       expect(typeof response).toBe('object');
-      expect(response.has(262)).toBeTruthy();
-      expect(response.has(263)).toBeTruthy();
-      expect(response.get(262)).toHaveProperty('version', 1);
-      expect(response.get(263)).toHaveProperty('version', 2);
+      expect(response[262]).toBeTruthy();
+      expect(response[263]).toBeTruthy();
+      expect(response[262]).toHaveProperty('version', 1);
+      expect(response[263]).toHaveProperty('version', 2);
       expect(firstSchema).toHaveProperty('type', 'record');
       expect(latestSchema).toHaveProperty('type', 'record');
     });
@@ -113,11 +113,11 @@ describe('Unit Test : src/core/load-schemas.ts', () => {
         'value'
       );
 
-      const schema = JSON.parse(response.get(263)!.schema as unknown as string);
+      const schema = JSON.parse(response[263]!.schema as unknown as string);
 
       expect(typeof response).toBe('object');
-      expect(response.has(263)).toBeTruthy();
-      expect(response.get(263)).toHaveProperty('version', 2);
+      expect(response[263]).toBeTruthy();
+      expect(response[263]).toHaveProperty('version', 2);
       expect(schema).toHaveProperty('type', 'record');
       expect(schema).toHaveProperty('fields');
     });
@@ -152,9 +152,9 @@ describe('Unit Test : src/core/load-schemas.ts', () => {
       expect(typeof response).toBe('object');
       expect(typeof valueSchemas).toBe('object');
       expect(typeof keySchemas).toBe('object');
-      expect(keySchemas.has(3)).toBeTruthy();
-      expect(keySchemas.get(3)).toHaveProperty('version', 1);
-      expect(keySchemas.get(3)).toHaveProperty('schema');
+      expect(keySchemas[3]).toBeTruthy();
+      expect(keySchemas[3]).toHaveProperty('version', 1);
+      expect(keySchemas[3]).toHaveProperty('schema');
     });
 
     test('When a schema doesnt exist', async () => {

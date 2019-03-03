@@ -9,7 +9,7 @@ import {
   SchemaFetchType,
 } from '../schema-registry/fetch';
 
-export interface SchemaMap {
+export interface SchemaObject {
   version: number;
   schema: Type;
 }
@@ -23,7 +23,7 @@ export const loadSchemasByType = async (
   type: SchemaFetchType
 ) => {
   try {
-    const schemaMap = new Map<number, SchemaMap>();
+    const schemaArray: SchemaObject[] = [];
 
     if (schemaVersions === 'latest') {
       const schema = await fetchSchema(
@@ -33,13 +33,15 @@ export const loadSchemasByType = async (
         type
       );
 
-      schemaMap.set(<number>schema.id, <SchemaMap>{
-        version: schema.version,
-        schema: Type.forSchema(
-          <Schema>((schema.schema) as unknown),
-          { wrapUnions: true }
-        ),
-      });
+      if (schema.id) {
+        schemaArray[schema.id] = <SchemaObject>{
+          version: schema.version,
+          schema: Type.forSchema(
+            <Schema>((schema.schema) as unknown),
+            { wrapUnions: true }
+          ),
+        };
+      }
     } else {
       let versions;
 
@@ -61,17 +63,19 @@ export const loadSchemasByType = async (
           type
         );
 
-        schemaMap.set(<number>schema.id, <SchemaMap>{
-          version: schema.version,
-          schema: Type.forSchema(
-            <Schema>((schema.schema) as unknown),
-            { wrapUnions: true }
-          ),
-        });
+        if (schema.id) {
+          schemaArray[schema.id] = <SchemaObject>{
+            version: schema.version,
+            schema: Type.forSchema(
+              <Schema>((schema.schema) as unknown),
+              { wrapUnions: true }
+            ),
+          };
+        }
       }
     }
 
-    return schemaMap;
+    return schemaArray;
   } catch (error) {
     throw error;
   }
@@ -83,16 +87,16 @@ export const loadSchemas = async (
   schemaVersions: SchemaVersionsRequested
 ) => {
   try {
-    const topicSchemaMap = new Map<string, Map<number, SchemaMap>>();
+    const topicSchemaMap = new Map<string, SchemaObject[]>();
 
-    const valueSchemasMap =
+    const valueSchemasArray =
       await loadSchemasByType(schemaRegistryEndpoint, topicName, schemaVersions, 'value');
 
-    const keySchemasMap =
+    const keySchemasArray =
       await loadSchemasByType(schemaRegistryEndpoint, topicName, schemaVersions, 'key');
 
-    topicSchemaMap.set('value', valueSchemasMap);
-    topicSchemaMap.set('key', keySchemasMap);
+    topicSchemaMap.set('value', valueSchemasArray);
+    topicSchemaMap.set('key', keySchemasArray);
 
     return topicSchemaMap;
   } catch (error) {
