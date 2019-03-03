@@ -31,16 +31,19 @@ There are two functions currently exported by the package:
 
 - [loadSchemas](#loadSchemas)
 - [consumerStream](#consumerStream)
+- [producerStream](#producerStream)
+- [produce](#produce)
 
 ### loadSchemas
-This will fetch the `key` and `value` schemas for a `topicName`.    
+This will fetch the `key` and `value` schemas for a `topicName`.
+
 #### Function Signature
 ```js
 async loadSchemas(
   schemaRegistryEndpoint,
   topicName,
   schemaVersions
-): Map<string, Map<number, SchemaMap>>;
+): Map<string, []>;
 ```
 Where:
 - **schemaRegistryEndpoint**: Endpoint for your Schema Registry;
@@ -50,18 +53,18 @@ Where:
   - `all`, which means it will fetch `all` versions of the schemas;
   - `latest`, which will fetch only the `latest` schema versions.
   
-Returns a `Map<string, Map<number, SchemaMap>>`, and the keys to the first `Map` will be either `key` or `value`.  
+Returns a `Map<string, SchemaObject[]>`, and the keys to the first `Map` will be either `key` or `value`.  
   
-The keys of `Map<number, SchemaMap>` are the IDs of the schemas in question.  
+The indexes of `SchemaObject[]` are the IDs of the schemas in question.  
 
-SchemaMap definition:
+SchemaObject definition:
 ```ts
-export interface SchemaMap {
+export interface SchemaObject {
   version: number;
   schema: Type;
 }
 ```
-Where `Type` comes from [avsc](https://github.com/mtth/avsc) (it's basically the type used to define an Avro schema from an `Object`).
+Where `Type` comes from [avsc](https://github.com/mtth/avsc) (it's basically the type used to define an Avro schema from a JavaScript `Object`).
   
 #### Example
 ```js
@@ -90,7 +93,7 @@ consumerStream(
   consumerConfiguration: Object = {},
   defaultTopicConfiguration: Object = {},
   streamOptions: Object = {},
-  schemas: Map<string, Map<number, SchemaMap>>,
+  schemas: Map<string, SchemaObject[]>,
   readStream: CreateReadStream = createReadStream
 ): ConsumerStream;
 ```
@@ -98,30 +101,36 @@ Where:
 - **consumerConfiguration**: `librdkafka`'s consumer-specific configuration;
 - **defaultTopicConfiguration**: `librdkafka`'s default topic configuration;
 - **streamOptions**: `librdkafka`'s read stream options;
-- **schemas**: A `Map` containing a `Map` of all `key` and `value` schemas (return from `loadSchemas`);
-- **readStream?**: The actual `librdkafka` `createReadStream` function. Optional.
+- **schemas**: A `Map` containing an `Array` of all `key` and `value` schemas (return from `loadSchemas`);
+- **readStream?**: The actual `librdkafka` `createReadStream` function. Will be created if not specified.
 
 Returns a `ConsumerStream`, which extends from `Readable` stream.
 
 #### Events Emitted
-- `avro`: Whenever a message is parsed with Avro;
-- `ready`: When the Consumer Stream is created;
-- `event.error`: Wraps `ConsumerStream.consumer`'s `event.error` event;
-- any other event emitted by a `ConsumerStream` from `node-rdkafka`.
+| Event name    | Trigger/Description                                   |
+|---------------|-------------------------------------------------------|
+| `avro`        | Whenever a message is parsed with Avro                |
+| `ready`       | When the Consumer Stream is created                   |
+| `event.error` | Wraps `ConsumerStream.consumer`'s `event.error` event |  
+
+And any other event emitted by a `ConsumerStream` from `node-rdkafka`.
   
 #### API
-Specifically for `avro` event emitted, it should be expected a `KafkaMessage` type, which contains:
-- rawValue: The raw value buffer;
-- rawKey: The raw key buffer;
-- size: Size in bytes of the original message;
-- topic: Name of the topic;
-- offset: Offset in which the message is;
-- partition: Partition from the topic;
-- timestamp: WHen the message was retrieved;
-- valueSchemaId: Schema ID for the value;
-- keySchemaId: Schema ID for the key;
-- value: Avro-deserialized value (from rawValue);
-- key: Avro-deserialized key (from rawKey).
+Specifically for `avro` event emitted, it should be expected a `KafkaMessage` type, which contains:  
+
+| Variable        | Description                             |
+|-----------------|-----------------------------------------|
+| `rawValue`      | The raw value buffer                    |
+| `rawKey`        | The raw key buffer                      |
+| `size`          | Size in bytes of the raw message        |
+| `topic`         | Name of the topic                       |
+| `offset`        | Offset in which the message is          |
+| `partition`     | Partition from the topic                |
+| `timestamp`     | When the message was retrieved          |
+| `valueSchemaId` | Schema ID for the value                 |
+| `keySchemaId`   | Schema ID for the key                   |
+| `value`         | Avro-deserialized value (from rawValue) |
+| `key`           | Avro-deserialized key (from rawKey)     |  
   
 #### Example
 ```js
@@ -169,9 +178,127 @@ const streamOptions = {
 })();
 ```
 
+### producerStream
+This will create a producer stream using [node-rdkafka](https://github.com/Blizzard/node-rdkafka).  
+  
+Please check their [**DOCUMENTATION**](https://github.com/Blizzard/node-rdkafka) since most of the options are from this library.
+
+#### Function Signature
+```js
+producerStream = (
+  producerConfiguration: Object = {},
+  defaultTopicConfiguration: Object = {},
+  streamOptions: Object = {},
+  writeStream: CreateWriteStream = createWriteStream
+) => ProducerStream;
+```
+Where:
+- **producerConfiguration**: `librdkafka`'s producer-specific configuration;
+- **defaultTopicConfiguration**: `librdkafka`'s default topic configuration;
+- **streamOptions**: `librdkafka`'s read stream options;
+- **writeStream?**: The actual `librdkafka` `createWriteStream` function. Will be created if not specified.
+
+Returns a `ProducerStream`, which extends from `Writable` stream.
+
+#### Events Emitted
+| Event name    | Trigger/Description                                   |
+|---------------|-------------------------------------------------------|
+| `ready`       | When the Producer Stream is created                   |
+
+And any other event emitted by a `ProducerStream` from `node-rdkafka`.
+
+#### Example
+```js
+import { loadSchemas, producerStream } from 'avrokado';
+
+const producerOpts = {
+  'metadata.broker.list': 'kafka:9092',
+  'socket.nagle.disable': true,
+  'socket.keepalive.enable': true,
+  'log.connection.close': false,
+};
+
+(async () => {
+  const schemas = await loadSchemas(
+    'schema-registry:8081',
+    'simple-producer-topic',
+    'latest'
+  );
+
+  const stream = producerStream(producerOpts, {}, {});
+})();
+```
+
+### produce
+This will produce a message to Kafka using a `ProducerStream`, with the `value` and `key` encoded with `Avro`.  
+
+#### Function Signature
+```js
+produce = (
+  writeStream: ProducerStream,
+  schemas: Map<string, SchemaObject[]>,
+  topic: TopicName,
+  value?: unknown,
+  key?: unknown,
+  partition: number = DEFAULT_PARTITION,
+  timestamp?: number,
+  opaque?: Object
+) => boolean;
+```
+Where:
+- **writeStream**: The actual `librdkafka` `createWriteStream` function. This is needed, since `avrokado` doesn't keep global state of created objects;
+- **schemas**: A `Map` containing an `Array` of all `key` and `value` schemas (return from `loadSchemas`);
+- **topic**: Name of the topic to which the message will be produced to;
+- **value?**: Value for the Kafka message. If `null`, will not be serialized;
+- **key?**: Key for the Kafka message. If `null`, will not be serialized;
+- **partition?**: The topic partition to which the message will be produced to. If not sent, `DEFAULT_PARTITION` (`-1`) will be used;
+- **timestamp?**: Timestamp for the creation of the message. If not sent, will default to `now`;
+- **opaque?**: Additional object or any data to be sent with the message. If not sent, will be `null`.
+
+If the `key` or `value` fail serialization (i.e. schema not found), their raw data will be sent instead.
+
+Returns a `true` in case the message has been written to the stream. `false` in case of any errors.
+
+#### Example
+```js
+import { loadSchemas, producerStream } from 'avrokado';
+
+const producerOpts = {
+  'metadata.broker.list': 'kafka:9092',
+  'socket.nagle.disable': true,
+  'socket.keepalive.enable': true,
+  'log.connection.close': false,
+};
+
+(async () => {
+  const schemas = await loadSchemas(
+    'schema-registry:8081',
+    'simple-producer-topic',
+    'latest'
+  );
+
+  const stream = producerStream(producerOpts, {}, {});
+
+  produce(
+    stream,
+    schemas,
+    'simple-producer-topic',
+    value,
+    key,
+    DEFAULT_PARTITION
+  );
+
+  stream.close();
+})();
+```
+
 ## Tests
 To run tests, you can run `npm test` or `yarn test`.
 
 ## TODO
-- Producer wrapper;
-- Writing tests for Consumer.
+- Add standard Producer.  
+- Remove `axios` dependency.
+- Improve in-code documentation.
+- Multi-load topics schemas.
+- Write tests for Producer.
+- Write tests for Consumer.
