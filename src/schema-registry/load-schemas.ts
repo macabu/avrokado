@@ -13,8 +13,16 @@ export interface SchemaObject {
   version: number;
   schema: Type;
 }
+export interface Schemas {
+  valueSchema: TypeSchemas;
+  keySchema: TypeSchemas;
+}
 
-type SchemaVersionsRequested = SchemaVersion | 'all';
+export type TopicsSchemas = { [topicName: string]: Schemas };
+
+export type TypeSchemas = { [schemaId: number]: SchemaObject };
+
+export type SchemaVersionsRequested = SchemaVersion | 'all';
 
 export const loadSchemasByType = async (
   schemaRegistryEndpoint: SchemaRegistryEndpoint,
@@ -23,7 +31,7 @@ export const loadSchemasByType = async (
   type: SchemaFetchType
 ) => {
   try {
-    const schemaArray: SchemaObject[] = [];
+    const typeSchemas: TypeSchemas = {};
 
     if (schemaVersions === 'latest') {
       const schema = await fetchSchema(
@@ -34,7 +42,7 @@ export const loadSchemasByType = async (
       );
 
       if (schema.id) {
-        schemaArray[schema.id] = <SchemaObject>{
+        typeSchemas[schema.id] = <SchemaObject>{
           version: schema.version,
           schema: Type.forSchema(
             <Schema>((schema.schema) as unknown),
@@ -64,7 +72,7 @@ export const loadSchemasByType = async (
         );
 
         if (schema.id) {
-          schemaArray[schema.id] = <SchemaObject>{
+          typeSchemas[schema.id] = <SchemaObject>{
             version: schema.version,
             schema: Type.forSchema(
               <Schema>((schema.schema) as unknown),
@@ -75,7 +83,7 @@ export const loadSchemasByType = async (
       }
     }
 
-    return schemaArray;
+    return typeSchemas;
   } catch (error) {
     throw error;
   }
@@ -83,22 +91,31 @@ export const loadSchemasByType = async (
 
 export const loadSchemas = async (
   schemaRegistryEndpoint: SchemaRegistryEndpoint,
-  topicName: TopicName,
+  topics: TopicName[] | TopicName,
   schemaVersions: SchemaVersionsRequested
 ) => {
   try {
-    const topicSchemaMap = new Map<string, SchemaObject[]>();
+    const topicsSchemas: TopicsSchemas = {};
 
-    const valueSchemasArray =
-      await loadSchemasByType(schemaRegistryEndpoint, topicName, schemaVersions, 'value');
+    let saneTopics = topics;
+    if (typeof topics === 'string') {
+      saneTopics = [topics];
+    }
 
-    const keySchemasArray =
-      await loadSchemasByType(schemaRegistryEndpoint, topicName, schemaVersions, 'key');
+    for await (const topic of saneTopics) {
+      const valueSchemasArray =
+        await loadSchemasByType(schemaRegistryEndpoint, topic, schemaVersions, 'value');
 
-    topicSchemaMap.set('value', valueSchemasArray);
-    topicSchemaMap.set('key', keySchemasArray);
+      const keySchemasArray =
+        await loadSchemasByType(schemaRegistryEndpoint, topic, schemaVersions, 'key');
 
-    return topicSchemaMap;
+      topicsSchemas[topic] = {
+        valueSchema: valueSchemasArray,
+        keySchema: keySchemasArray,
+      };
+    }
+
+    return topicsSchemas;
   } catch (error) {
     throw error;
   }

@@ -146,8 +146,8 @@ describe('Unit Test : src/schema-registry/load-schemas.ts', () => {
         'latest'
       );
 
-      const valueSchemas = response.get('value')!;
-      const keySchemas = response.get('key')!;
+      const valueSchemas = response['success-topic'].valueSchema;
+      const keySchemas = response['success-topic'].keySchema;
 
       expect(typeof response).toBe('object');
       expect(typeof valueSchemas).toBe('object');
@@ -161,7 +161,7 @@ describe('Unit Test : src/schema-registry/load-schemas.ts', () => {
       expect.assertions(1);
 
       await expect(
-        loadSchemas('http://mock-schema-registry:1234', 'fail-topic', 'latest')
+        loadSchemas('http://mock-schema-registry:1234', ['fail-topic'], 'latest')
       ).rejects.toThrowError();
     });
   });

@@ -1,6 +1,6 @@
 import { Type } from 'avsc';
 
-import { SchemaObject } from './load-schemas';
+import { TypeSchemas } from './load-schemas';
 
 import {
   encodeWireFormat,
@@ -15,8 +15,6 @@ export interface DecodedAvroChunk {
   decoded: JSON;
   schemaId: number;
 }
-
-type SchemaFetchType = 'key' | 'value';
 
 export const encodeAvro = (
   schema: Type,
@@ -54,7 +52,7 @@ export const decodeAvro = (
     }
 
     const readSchemaId = data.readInt32BE(WirePosition.SchemaId);
-    if (readSchemaId !== schemaId) {
+    if (readSchemaId !== Number(schemaId)) {
       throw new TypeError('Data has incorrect schema id or is unserialized');
     }
 
@@ -67,73 +65,57 @@ export const decodeAvro = (
 };
 
 export const encodeAvroChunk = (
-  allSchemas: Map<string, SchemaObject[]>,
-  schemaType: SchemaFetchType,
+  schemas: TypeSchemas,
   data?: unknown
 ) => {
   if (!data || (typeof data === 'object' && !Object.keys(<Object>data).length)) {
     return Buffer.alloc(0);
   }
 
-  const schemas = <SchemaObject[]>allSchemas.get(schemaType);
+  let err = null;
 
-  if (schemas && schemas.length) {
-    for (let i = schemas.length; i >= 0; i -= 1) {
+  if (schemas && Object.keys(<Object>schemas).length) {
+    for (const schemaId in schemas) {
       try {
-        if (!schemas[i]) {
-          if (i === 0) {
-            throw new TypeError('Could not find schema');
-          } else {
-            continue;
-          }
-        }
-
-        return <Data>encodeAvro(schemas[i].schema, i, data);
+        return <Data>encodeAvro(schemas[schemaId].schema, schemaId, data);
       } catch (error) {
-        if (i === 0) {
-          throw error;
-        } else {
-          continue;
-        }
+        err = error;
+        continue;
       }
     }
+  }
+
+  if (err) {
+    throw err;
   }
 
   throw new TypeError('Failed to find schema size!');
 };
 
 export const decodeAvroChunk = (
-  allSchemas: Map<string, SchemaObject[]>,
-  schemaType: SchemaFetchType,
+  schemas: TypeSchemas,
   data: Buffer
 ) => {
-  const schemas = <SchemaObject[]>allSchemas.get(schemaType);
+  let err = null;
 
-  if (schemas && schemas.length) {
-    for (let i = schemas.length; i >= 0; i -= 1) {
+  if (schemas && Object.keys(<Object>schemas).length) {
+    for (const schemaId in schemas) {
       try {
-        if (!schemas[i]) {
-          if (i === 0) {
-            throw new TypeError('Could not find schema');
-          } else {
-            continue;
-          }
-        }
-
-        const decoded = decodeAvro(schemas[i].schema, i, data);
+        const decoded = decodeAvro(schemas[schemaId].schema, schemaId, data);
 
         return <DecodedAvroChunk>{
           decoded,
-          schemaId: i,
+          schemaId: Number.parseInt(schemaId, 10),
         };
       } catch (error) {
-        if (i === 0) {
-          throw error;
-        } else {
-          continue;
-        }
+        err = error;
+        continue;
       }
     }
+  }
+
+  if (err) {
+    throw err;
   }
 
   throw new TypeError('Failed to find schema size!');

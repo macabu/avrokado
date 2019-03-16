@@ -1,6 +1,6 @@
 import { ConsumerStream, createReadStream } from 'node-rdkafka';
 
-import { SchemaObject } from '../schema-registry/load-schemas';
+import { TopicsSchemas } from '../schema-registry/load-schemas';
 import { decodeAvroChunk, DecodedAvroChunk } from '../schema-registry/avro-format';
 
 interface Chunk {
@@ -33,7 +33,7 @@ export const consumerStream = (
   consumerConfiguration: Object = {},
   defaultTopicConfiguration: Object = {},
   streamOptions: Object = {},
-  schemas: Map<string, SchemaObject[]>,
+  schemas: TopicsSchemas,
   readStream: CreateReadStream = createReadStream
 ) => {
   const consumerStream = readStream(
@@ -43,25 +43,30 @@ export const consumerStream = (
   );
 
   consumerStream.on('data', async (chunk: Chunk) => {
-    const {
-      decoded: value,
-      schemaId: valueSchemaId,
-    } = <DecodedAvroChunk>decodeAvroChunk(schemas, 'value', chunk.value);
+    if (schemas[chunk.topic]) {
+      const valueSchema = schemas[chunk.topic].valueSchema;
+      const keySchema = schemas[chunk.topic].keySchema;
 
-    const {
-      decoded: key,
-      schemaId: keySchemaId,
-    } = <DecodedAvroChunk>decodeAvroChunk(schemas, 'key', chunk.key);
+      const {
+        decoded: value,
+        schemaId: valueSchemaId,
+      } = <DecodedAvroChunk>decodeAvroChunk(valueSchema, chunk.value);
 
-    consumerStream.emit('avro', <KafkaMessage>{
-      ...chunk,
-      value,
-      key,
-      valueSchemaId,
-      keySchemaId,
-      rawValue: chunk.value,
-      rawKey: chunk.key,
-    });
+      const {
+        decoded: key,
+        schemaId: keySchemaId,
+      } = <DecodedAvroChunk>decodeAvroChunk(keySchema, chunk.key);
+
+      consumerStream.emit('avro', <KafkaMessage>{
+        ...chunk,
+        value,
+        key,
+        valueSchemaId,
+        keySchemaId,
+        rawValue: chunk.value,
+        rawKey: chunk.key,
+      });
+    }
   });
 
   consumerStream.consumer.on(

@@ -536,11 +536,10 @@ describe('Integration Test : src/schema-registry/avro-format.ts', () => {
         'latest'
       );
 
-      const schemaType = 'value';
-
       const encoded = encodeAvro(schema, schemaId, data, magicByte);
 
-      const { decoded, schemaId: dSchemaId } = decodeAvroChunk(allSchemas, schemaType, encoded);
+      const { decoded, schemaId: dSchemaId } =
+        decodeAvroChunk(allSchemas['success-topic'].valueSchema, encoded);
 
       expect(decoded).toMatchObject(data);
       expect(dSchemaId).toBe(schemaId);
@@ -573,11 +572,10 @@ describe('Integration Test : src/schema-registry/avro-format.ts', () => {
         'all'
       );
 
-      const schemaType = 'value';
-
       const encoded = encodeAvro(schema, schemaId, data, magicByte);
 
-      const { decoded, schemaId: dSchemaId } = decodeAvroChunk(allSchemas, schemaType, encoded);
+      const { decoded, schemaId: dSchemaId } =
+        decodeAvroChunk(allSchemas['success-topic'].valueSchema, encoded);
 
       expect(decoded).toMatchObject(data);
       expect(dSchemaId).toBe(schemaId);
@@ -610,12 +608,10 @@ describe('Integration Test : src/schema-registry/avro-format.ts', () => {
         'all'
       );
 
-      const schemaType = 'value';
-
       const encoded = encodeAvro(schema, schemaId, data, magicByte);
 
       expect(() => {
-        decodeAvroChunk(allSchemas, schemaType, encoded);
+        decodeAvroChunk(allSchemas['success-topic'].valueSchema, encoded);
       }).toThrow();
     });
 
@@ -640,12 +636,10 @@ describe('Integration Test : src/schema-registry/avro-format.ts', () => {
 
       const magicByte = 0x0;
 
-      const schemaType = 'value';
-
       const encoded = encodeAvro(schema, schemaId, data, magicByte);
 
       expect(() => {
-        decodeAvroChunk(new Map(), schemaType, encoded);
+        decodeAvroChunk({}, encoded);
       }).toThrow(TypeError);
     });
   });
@@ -664,9 +658,8 @@ describe('Integration Test : src/schema-registry/avro-format.ts', () => {
         'latest'
       );
 
-      const schemaType = 'value';
-
-      const encodedValue = encodeAvroChunk(allSchemas, schemaType, data);
+      const encodedValue =
+        encodeAvroChunk(allSchemas['success-topic'].valueSchema, data);
 
       expect(encodedValue).toBeTruthy();
       expect(typeof encodedValue).toBe('object');
@@ -688,9 +681,8 @@ describe('Integration Test : src/schema-registry/avro-format.ts', () => {
         'all'
       );
 
-      const schemaType = 'value';
-
-      const encodedValue = encodeAvroChunk(allSchemas, schemaType, data);
+      const encodedValue =
+        encodeAvroChunk(allSchemas['success-topic'].valueSchema, data);
 
       expect(encodedValue).toBeTruthy();
       expect(typeof encodedValue).toBe('object');
@@ -702,9 +694,7 @@ describe('Integration Test : src/schema-registry/avro-format.ts', () => {
     test('With no data', async () => {
       expect.assertions(1);
 
-      const schemaType = 'value';
-
-      const encodedValue = encodeAvroChunk(new Map(), schemaType);
+      const encodedValue = encodeAvroChunk({});
 
       expect(encodedValue).toHaveLength(0);
     });
@@ -716,10 +706,8 @@ describe('Integration Test : src/schema-registry/avro-format.ts', () => {
         age: 1,
       };
 
-      const schemaType = 'value';
-
       expect(() => {
-        encodeAvroChunk(new Map(), schemaType, data);
+        encodeAvroChunk({}, data);
       }).toThrow(TypeError);
     });
 
@@ -734,10 +722,8 @@ describe('Integration Test : src/schema-registry/avro-format.ts', () => {
         'all'
       );
 
-      const schemaType = 'value';
-
       expect(() => {
-        encodeAvroChunk(allSchemas, schemaType, data);
+        encodeAvroChunk(allSchemas['success-topic'].valueSchema, data);
       }).toThrow();
     });
   });

@@ -1,6 +1,6 @@
 import { ProducerStream, createWriteStream } from 'node-rdkafka';
 
-import { SchemaObject } from '../schema-registry/load-schemas';
+import { TopicsSchemas } from '../schema-registry/load-schemas';
 import { encodeAvroChunk } from '../schema-registry/avro-format';
 
 type CreateWriteStream = (conf: Object, topicConf: Object, streamOptions: Object) => ProducerStream;
@@ -34,7 +34,7 @@ export const producerStream = (
 
 export const produce = (
   writeStream: ProducerStream,
-  schemas: Map<string, SchemaObject[]>,
+  schemas: TopicsSchemas,
   topic: TopicName,
   value?: unknown,
   key?: unknown,
@@ -42,8 +42,16 @@ export const produce = (
   timestamp?: number,
   opaque?: Object
 ) => {
-  const encodedValue = encodeAvroChunk(schemas, 'value', value);
-  const encodedKey = encodeAvroChunk(schemas, 'key', key);
+  let encodedValue = Buffer.allocUnsafe(0);
+  let encodedKey = Buffer.allocUnsafe(0);
+
+  if (schemas[topic]) {
+    const valueSchema = schemas[topic].valueSchema;
+    const keySchema = schemas[topic].keySchema;
+
+    encodedValue = encodeAvroChunk(valueSchema, value);
+    encodedKey = encodeAvroChunk(keySchema, key);
+  }
 
   let sendValue = <unknown>encodedValue;
   if (!encodedValue.length) {

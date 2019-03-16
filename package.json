@@ -9,7 +9,8 @@
     "Apache",
     "stream",
     "consumer",
-    "producer"
+    "producer",
+    "serde"
   ],
   "repository": "git@github.com:macabu/avrokado.git",
   "bugs": {

@@ -39,23 +39,37 @@ This will fetch the `key` and `value` schemas for a `topicName`.
 
 #### Function Signature
 ```js
-async loadSchemas(
-  schemaRegistryEndpoint,
-  topicName,
-  schemaVersions
-): Map<string, []>;
+async loadSchemas (
+  schemaRegistryEndpoint: SchemaRegistryEndpoint,
+  topics: TopicName[] | TopicName,
+  schemaVersions: SchemaVersionsRequested
+) => TopicsSchemas;
 ```
 Where:
 - **schemaRegistryEndpoint**: Endpoint for your Schema Registry;
-- **topicName**: Name of the topic you want to retrieve the schemas for;
+- **topics**: Name of the topics (`Array`) or topic (`String`) you want to retrieve the schemas for;
 - **schemaVersions**: It can be either:
   - A `number`, which will then force the function to only fetch that version;
   - `all`, which means it will fetch `all` versions of the schemas;
   - `latest`, which will fetch only the `latest` schema versions.
   
-Returns a `Map<string, SchemaObject[]>`, and the keys to the first `Map` will be either `key` or `value`.  
-  
-The indexes of `SchemaObject[]` are the IDs of the schemas in question.  
+Returns all the schemas fetched (`TopicsSchemas`), that have the format:
+```js
+type TopicsSchemas = { [topicName: string]: Schemas };
+```
+
+Where `Schemas` is an interface that contains the `value` and `key` schemas:
+```js
+interface Schemas {
+  valueSchema: TypeSchemas;
+  keySchema: TypeSchemas;
+}
+```
+
+And where `TypeSchemas` is an object of `SchemaObject`s:
+```js
+type TypeSchemas = { [schemaId: number]: SchemaObject };
+```
 
 SchemaObject definition:
 ```ts
@@ -72,7 +86,7 @@ import { loadSchemas } from 'avrokado';
 
 (async () => {
   const sr = 'http://schema-registry:8081';
-  const topic = 'my-great-topic';
+  const topic = ['my-great-topic', 'my-so-so-topic'];
   const version = 'latest';
 
   const schemas = await loadSchemas(sr, topic, version);
@@ -93,7 +107,7 @@ consumerStream(
   consumerConfiguration: Object = {},
   defaultTopicConfiguration: Object = {},
   streamOptions: Object = {},
-  schemas: Map<string, SchemaObject[]>,
+  schemas: TopicsSchemas,
   readStream: CreateReadStream = createReadStream
 ): ConsumerStream;
 ```
@@ -101,7 +115,7 @@ Where:
 - **consumerConfiguration**: `librdkafka`'s consumer-specific configuration;
 - **defaultTopicConfiguration**: `librdkafka`'s default topic configuration;
 - **streamOptions**: `librdkafka`'s read stream options;
-- **schemas**: A `Map` containing an `Array` of all `key` and `value` schemas (return from `loadSchemas`);
+- **schemas**: An object with all `key` and `value` schemas (return from `loadSchemas`);
 - **readStream?**: The actual `librdkafka` `createReadStream` function. Will be created if not specified.
 
 Returns a `ConsumerStream`, which extends from `Readable` stream.
@@ -236,7 +250,7 @@ This will produce a message to Kafka using a `ProducerStream`, with the `value` 
 ```js
 produce = (
   writeStream: ProducerStream,
-  schemas: Map<string, SchemaObject[]>,
+  schemas: TopicsSchemas,
   topic: TopicName,
   value?: unknown,
   key?: unknown,
@@ -247,7 +261,7 @@ produce = (
 ```
 Where:
 - **writeStream**: The actual `librdkafka` `createWriteStream` function. This is needed, since `avrokado` doesn't keep global state of created objects;
-- **schemas**: A `Map` containing an `Array` of all `key` and `value` schemas (return from `loadSchemas`);
+- **schemas**: An object with all `key` and `value` schemas (return from `loadSchemas`);
 - **topic**: Name of the topic to which the message will be produced to;
 - **value?**: Value for the Kafka message. If `null`, will not be serialized;
 - **key?**: Key for the Kafka message. If `null`, will not be serialized;
@@ -299,6 +313,5 @@ To run tests, you can run `npm test` or `yarn test`.
 - Add standard Producer.  
 - Remove `axios` dependency.
 - Improve in-code documentation.
-- Multi-load topics schemas.
 - Write tests for Producer.
 - Write tests for Consumer.
