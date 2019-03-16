@@ -7,7 +7,7 @@ import {
   TopicName,
   SchemaVersion,
   SchemaFetchType,
-} from '../schema-registry/fetch';
+} from './fetch';
 
 export interface SchemaObject {
   version: number;

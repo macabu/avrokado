@@ -1,5 +1,5 @@
-import { loadSchemas } from '../src/core/load-schemas';
-import { consumerStream, KafkaMessage } from '../src/kafka/consumer';
+import { loadSchemas } from '../lib/schema-registry';
+import { consumerStream, KafkaMessage } from '../lib/kafka';
 
 const consumerOpts = {
   'metadata.broker.list': 'kafka:9092',

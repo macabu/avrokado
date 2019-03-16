@@ -1,6 +1,6 @@
 import { Type } from 'avsc';
 
-import { SchemaObject } from '../core/load-schemas';
+import { SchemaObject } from './load-schemas';
 
 import {
   encodeWireFormat,

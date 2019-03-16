@@ -1,6 +1,6 @@
 import { ConsumerStream, createReadStream } from 'node-rdkafka';
 
-import { SchemaObject } from '../core/load-schemas';
+import { SchemaObject } from '../schema-registry/load-schemas';
 import { decodeAvroChunk, DecodedAvroChunk } from '../schema-registry/avro-format';
 
 interface Chunk {

@@ -1,6 +1,6 @@
 import { ProducerStream, createWriteStream } from 'node-rdkafka';
 
-import { SchemaObject } from '../core/load-schemas';
+import { SchemaObject } from '../schema-registry/load-schemas';
 import { encodeAvroChunk } from '../schema-registry/avro-format';
 
 type CreateWriteStream = (conf: Object, topicConf: Object, streamOptions: Object) => ProducerStream;

@@ -1,5 +1,5 @@
-import { loadSchemas } from '../src/core/load-schemas';
-import { producerStream, produce, DEFAULT_PARTITION } from '../src/kafka/producer';
+import { loadSchemas } from '../lib/schema-registry';
+import { producerStream, produce, DEFAULT_PARTITION } from '../lib/kafka';
 
 const producerOpts = {
   'metadata.broker.list': 'kafka:9092',

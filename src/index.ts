@@ -1,3 +1,11 @@
-export { loadSchemas } from './core/load-schemas';
-export { consumerStream, KafkaMessage } from './kafka/consumer';
-export { producerStream, DEFAULT_PARTITION, produce } from './kafka/producer';
+export {
+  loadSchemas,
+} from './schema-registry';
+
+export {
+  consumerStream,
+  KafkaMessage,
+  producerStream,
+  DEFAULT_PARTITION,
+  produce
+} from './kafka';

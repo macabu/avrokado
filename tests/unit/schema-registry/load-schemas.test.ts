@@ -1,6 +1,6 @@
 import nock from 'nock';
 
-import { loadSchemasByType, loadSchemas } from '../../../src/core/load-schemas';
+import { loadSchemasByType, loadSchemas } from '../../../src/schema-registry/load-schemas';
 
 nock('http://mock-schema-registry:1234')
   .persist()
@@ -60,7 +60,7 @@ nock('http://mock-schema-registry:1234')
   .reply(204)
   .persist();
 
-describe('Unit Test : src/core/load-schemas.ts', () => {
+describe('Unit Test : src/schema-registry/load-schemas.ts', () => {
   describe('loadSchemasByType', () => {
     test('Loading the latest value schema version', async () => {
       expect.assertions(5);

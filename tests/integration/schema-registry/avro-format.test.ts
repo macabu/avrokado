@@ -1,7 +1,7 @@
 import nock from 'nock';
 import { Type, Schema } from 'avsc';
 
-import { loadSchemas } from '../../../src/core/load-schemas';
+import { loadSchemas } from '../../../src/schema-registry/load-schemas';
 import {
   encodeAvro,
   decodeAvro,
