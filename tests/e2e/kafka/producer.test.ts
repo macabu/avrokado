@@ -2,7 +2,7 @@ import { createWriteStream } from 'node-rdkafka';
 
 import { loadSchemasForTopic, cleanupSchemas } from '../../utils/create-schema';
 import { loadSchemas } from '../../../src/schema-registry';
-import { producerStream, produce, DEFAULT_PARTITION } from '../../../src/kafka';
+import { producerStream, produce, DEFAULT_PARTITION } from '../../../src/kafka/producer';
 import { KAFKA_BROKER, SCHEMA_REGISTRY_URL, TOPIC_NAME, TOPIC_VALUES } from '../../utils/constant';
 
 describe('E2E Test : src/kafka/producer.ts', () => {
