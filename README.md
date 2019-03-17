@@ -310,7 +310,12 @@ const producerOpts = {
 ```
 
 ## Tests
-To run tests, you can run `npm test` or `yarn test`.
+To run tests:
+1. Install `Docker`;
+2. Install `docker-compose`;
+3. Add `127.0.0.1 kafka` to your `/etc/hosts`;
+4. Start up the images with `docker-compose up -d`;
+4. Run `npm test` or `yarn test`.
 
 ## TODO
 - Add standard Producer.  
