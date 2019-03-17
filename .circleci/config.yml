@@ -1,13 +1,27 @@
 version: 2
 jobs:
   build:
-    docker:
-      - image: circleci/node:10
-        environment:
-          NODE_ENV: "test"
     working_directory: ~/avrokado
+    machine:
+        enabled: true
+        docker_layer_caching: true
     steps:
       - checkout
+      - run: |
+          echo 'export NVM_DIR="/opt/circleci/.nvm"' >> $BASH_ENV
+          echo ' [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> $BASH_ENV
+      - run: |
+          nvm install v10
+          nvm alias default v10
+      - run: |
+          if [[ ! -d "$HOME/.yarn" ]]; then
+            curl -o- -L https://yarnpkg.com/install.sh | bash;
+          fi
+          echo 'export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"' >> $BASH_ENV
+      - run: pip install docker-compose
+      - run: sudo apt-get update && sudo apt-get -y install libsasl2-dev libssl-dev
+      - run: echo 127.0.0.1 kafka | sudo tee -a /etc/hosts
+      - run: docker-compose up -d
       - run: yarn install
       - run: yarn lint
       - run: yarn test && yarn codecov
