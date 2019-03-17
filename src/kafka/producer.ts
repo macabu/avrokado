@@ -18,7 +18,7 @@ interface KafkaProducerMessage {
 export const DEFAULT_PARTITION = -1;
 
 export const producerStream = (
-  producerConfiguration: Object = {},
+  producerConfiguration: Object,
   defaultTopicConfiguration: Object = {},
   streamOptions: Object = {},
   writeStream: CreateWriteStream = createWriteStream
@@ -39,38 +39,43 @@ export const produce = (
   value?: unknown,
   key?: unknown,
   partition: number = DEFAULT_PARTITION,
+  fallback: boolean = false,
   timestamp?: number,
   opaque?: Object
 ) => {
-  let encodedValue = Buffer.allocUnsafe(0);
-  let encodedKey = Buffer.allocUnsafe(0);
+  let encodedValue = Buffer.alloc(0);
+  let encodedKey = Buffer.alloc(0);
 
   if (schemas[topic]) {
     const valueSchema = schemas[topic].valueSchema;
     const keySchema = schemas[topic].keySchema;
 
-    encodedValue = encodeAvroChunk(valueSchema, value);
-    encodedKey = encodeAvroChunk(keySchema, key);
+    try {
+      encodedValue = encodeAvroChunk(valueSchema, value);
+      encodedKey = encodeAvroChunk(keySchema, key);
+    } catch (error) {
+      if (!fallback) {
+        throw error;
+      }
+    }
   }
 
-  let sendValue = <unknown>encodedValue;
+  let sendValue = encodedValue;
   if (!encodedValue.length) {
-    sendValue = value;
-    if (value) {
-      sendValue = Buffer.isBuffer(value)
+    sendValue = value
+      ? Buffer.isBuffer(value)
         ? value
-        : Buffer.from(JSON.stringify(value));
-    }
+        : Buffer.from(JSON.stringify(value))
+      : Buffer.alloc(0);
   }
 
-  let sendKey = <unknown>encodedKey;
+  let sendKey = encodedKey;
   if (!encodedKey.length) {
-    sendKey = key;
-    if (key) {
-      sendKey = Buffer.isBuffer(key)
+    sendKey = key
+      ? Buffer.isBuffer(key)
         ? key
-        : Buffer.from(JSON.stringify(key));
-    }
+        : Buffer.from(JSON.stringify(key))
+      : Buffer.alloc(0);
   }
 
   const message = <KafkaProducerMessage>{

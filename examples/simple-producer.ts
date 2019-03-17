@@ -29,7 +29,8 @@ const startProducer = async () => {
     'simple-producer-topic',
     value,
     key,
-    DEFAULT_PARTITION
+    DEFAULT_PARTITION,
+    false
   );
 
   stream.close();

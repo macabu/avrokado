@@ -200,7 +200,7 @@ Please check their [**DOCUMENTATION**](https://github.com/Blizzard/node-rdkafka)
 #### Function Signature
 ```js
 producerStream = (
-  producerConfiguration: Object = {},
+  producerConfiguration: Object,
   defaultTopicConfiguration: Object = {},
   streamOptions: Object = {},
   writeStream: CreateWriteStream = createWriteStream
@@ -208,8 +208,8 @@ producerStream = (
 ```
 Where:
 - **producerConfiguration**: `librdkafka`'s producer-specific configuration;
-- **defaultTopicConfiguration**: `librdkafka`'s default topic configuration;
-- **streamOptions**: `librdkafka`'s read stream options;
+- **defaultTopicConfiguration?**: `librdkafka`'s default topic configuration;
+- **streamOptions?**: `librdkafka`'s read stream options;
 - **writeStream?**: The actual `librdkafka` `createWriteStream` function. Will be created if not specified.
 
 Returns a `ProducerStream`, which extends from `Writable` stream.
@@ -255,6 +255,7 @@ produce = (
   value?: unknown,
   key?: unknown,
   partition: number = DEFAULT_PARTITION,
+  fallback: boolean = false,
   timestamp?: number,
   opaque?: Object
 ) => boolean;
@@ -266,6 +267,7 @@ Where:
 - **value?**: Value for the Kafka message. If `null`, will not be serialized;
 - **key?**: Key for the Kafka message. If `null`, will not be serialized;
 - **partition?**: The topic partition to which the message will be produced to. If not sent, `DEFAULT_PARTITION` (`-1`) will be used;
+- **fallback?**: If the schema cannot be found or if serialization fails, fallback to `JSON.stringify` the `key`/`value`;
 - **timestamp?**: Timestamp for the creation of the message. If not sent, will default to `now`;
 - **opaque?**: Additional object or any data to be sent with the message. If not sent, will be `null`.
 
@@ -299,7 +301,8 @@ const producerOpts = {
     'simple-producer-topic',
     value,
     key,
-    DEFAULT_PARTITION
+    DEFAULT_PARTITION,
+    false
   );
 
   stream.close();
@@ -313,5 +316,4 @@ To run tests, you can run `npm test` or `yarn test`.
 - Add standard Producer.  
 - Remove `axios` dependency.
 - Improve in-code documentation.
-- Write tests for Producer.
 - Write tests for Consumer.
