@@ -1,4 +1,4 @@
-import { ConsumerStream, createReadStream } from 'node-rdkafka';
+import { createReadStream } from 'node-rdkafka';
 
 import { TopicsSchemas } from '../schema-registry/load-schemas';
 import { decodeAvroChunk, DecodedAvroChunk } from '../schema-registry/avro-format';
@@ -14,29 +14,29 @@ interface Chunk {
 }
 
 export interface KafkaMessage {
-  rawValue: Buffer;
-  rawKey: Buffer;
+  value: Buffer;
+  key: Buffer;
   size: number;
   topic: string;
   offset: number;
   partition: number;
   timestamp: number;
-  valueSchemaId: number;
-  keySchemaId: number;
-  value: JSON & string & number;
-  key: JSON & string & number;
 }
 
-type CreateReadStream = (conf: Object, topicConf: Object, streamOptions: Object) => ConsumerStream;
+export interface AvrokadoMessage extends KafkaMessage {
+  valueSchemaId: number;
+  keySchemaId: number;
+  parsedValue: JSON & string & number;
+  parsedKey: JSON & string & number;
+}
 
 export const consumerStream = (
   consumerConfiguration: Object = {},
   defaultTopicConfiguration: Object = {},
   streamOptions: Object = {},
-  schemas: TopicsSchemas,
-  readStream: CreateReadStream = createReadStream
+  schemas: TopicsSchemas
 ) => {
-  const consumerStream = readStream(
+  const consumerStream = createReadStream(
     consumerConfiguration,
     defaultTopicConfiguration,
     streamOptions
@@ -48,23 +48,21 @@ export const consumerStream = (
       const keySchema = schemas[chunk.topic].keySchema;
 
       const {
-        decoded: value,
+        decoded: parsedValue,
         schemaId: valueSchemaId,
       } = <DecodedAvroChunk>decodeAvroChunk(valueSchema, chunk.value);
 
       const {
-        decoded: key,
+        decoded: parsedKey,
         schemaId: keySchemaId,
       } = <DecodedAvroChunk>decodeAvroChunk(keySchema, chunk.key);
 
-      consumerStream.emit('avro', <KafkaMessage>{
+      consumerStream.emit('avro', <AvrokadoMessage>{
         ...chunk,
-        value,
-        key,
+        parsedValue,
+        parsedKey,
         valueSchemaId,
         keySchemaId,
-        rawValue: chunk.value,
-        rawKey: chunk.key,
       });
     }
   });
