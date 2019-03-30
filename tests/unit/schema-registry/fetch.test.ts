@@ -83,9 +83,9 @@ describe('Unit Test : src/schema-registry/fetch.ts', () => {
       expect(response).toHaveProperty(['httpResponse', 'status'], 204);
       expect(response).toHaveProperty(
         ['httpResponse', 'path'],
-        '/subjects/success-bad-response-topic-value/versions/latest'
+        'http://mock-schema-registry:1234/subjects/success-bad-response-topic-value/versions/latest'
       );
-      expect(response).toHaveProperty(['httpResponse', 'data'], '');
+      expect(response).toHaveProperty(['httpResponse', 'body'], '');
     });
 
     test('When a schema doesnt exist', async () => {
@@ -122,9 +122,9 @@ describe('Unit Test : src/schema-registry/fetch.ts', () => {
       expect(response).toHaveProperty(['httpResponse', 'status'], 204);
       expect(response).toHaveProperty(
         ['httpResponse', 'path'],
-        '/subjects/success-bad-response-topic-value/versions'
+        'http://mock-schema-registry:1234/subjects/success-bad-response-topic-value/versions'
       );
-      expect(response).toHaveProperty(['httpResponse', 'data'], '');
+      expect(response).toHaveProperty(['httpResponse', 'body'], '');
     });
 
     test('When a schema doesnt exist', async () => {

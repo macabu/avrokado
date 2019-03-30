@@ -1,4 +1,4 @@
-import axios, { AxiosResponse } from 'axios';
+import got, { Response as GotResponse } from 'got';
 
 export type SchemaRegistryEndpoint = string;
 export type TopicName = string;
@@ -45,14 +45,15 @@ export const fetchSchema = async (
     saneEndpoint += 'versions/';
     saneEndpoint += `${schemaVersion}`;
 
-    const response = await axios.get(saneEndpoint);
+    const response: GotResponse<ISchemaRegistryResponse> =
+      await got.get(saneEndpoint, { json: true });
 
-    if (response && response.data && response.status === 200) {
-      const { data }: AxiosResponse<ISchemaRegistryResponse> = response;
+    if (response && response.body && response.statusCode === 200) {
+      const { body }: GotResponse<ISchemaRegistryResponse> = response;
 
       return <SchemaFetchResponse<ISchemaRegistryResponse>>{
-        ...data,
-        schema: JSON.parse(<string>(data.schema as unknown)),
+        ...body,
+        schema: JSON.parse(<string>(body.schema as unknown)),
       };
     }
 
@@ -62,11 +63,11 @@ export const fetchSchema = async (
       type,
       message: 'Schema fetch failed abnormously!',
       httpResponse: {
-        status: response.status,
-        statusText: response.statusText,
-        method: response.request.method,
-        path: response.request.path,
-        data: response.data,
+        status: response.statusCode,
+        statusText: response.statusMessage,
+        method: response.method,
+        path: response.url,
+        body: response.body,
       },
     };
   } catch (error) {
@@ -87,12 +88,12 @@ export const fetchSchemaVersions = async (
     saneEndpoint += `${topicName}-${type}/`;
     saneEndpoint += 'versions';
 
-    const response = await axios.get(saneEndpoint);
+    const response = await got.get(saneEndpoint, { json: true });
 
-    if (response && response.data && response.status === 200) {
-      const { data }: AxiosResponse<SchemaFetchResponse<SchemaFetchVersionsResponse>> = response;
+    if (response && response.body && response.statusCode === 200) {
+      const { body }: GotResponse<SchemaFetchResponse<SchemaFetchVersionsResponse>> = response;
 
-      return data;
+      return body;
     }
 
     return <SchemaFetchResponse<Partial<unknown>>> {
@@ -100,11 +101,11 @@ export const fetchSchemaVersions = async (
       type,
       message: 'Schema versions fetch failed abnormously!',
       httpResponse: {
-        status: response.status,
-        statusText: response.statusText,
-        method: response.request.method,
-        path: response.request.path,
-        data: response.data,
+        status: response.statusCode,
+        statusText: response.statusMessage,
+        method: response.method,
+        path: response.url,
+        body: response.body,
       },
     };
   } catch (error) {
