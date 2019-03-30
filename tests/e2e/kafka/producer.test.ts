@@ -1,5 +1,3 @@
-import { createWriteStream } from 'node-rdkafka';
-
 import { loadSchemasForTopic, cleanupSchemas } from '../../utils/create-schema';
 import { loadSchemas } from '../../../src/schema-registry';
 import { producerStream, produce, DEFAULT_PARTITION } from '../../../src/kafka/producer';
@@ -155,40 +153,6 @@ describe('E2E Test : src/kafka/producer.ts', () => {
       expect(result).toBeTruthy();
     });
 
-    test('With valid schemas and non-default options', async () => {
-      const producerOpts = {
-        'metadata.broker.list': KAFKA_BROKER,
-        'socket.nagle.disable': true,
-        'socket.keepalive.enable': true,
-        'log.connection.close': false,
-      };
-
-      const schemas = await loadSchemas(
-        SCHEMA_REGISTRY_URL,
-        TOPIC_NAME,
-        'latest'
-      );
-
-      const value = TOPIC_VALUES.shift();
-
-      const key = 'my-key';
-
-      const stream = producerStream(producerOpts, {}, {}, createWriteStream);
-
-      const result = produce(
-        stream,
-        schemas,
-        TOPIC_NAME,
-        value,
-        key,
-        DEFAULT_PARTITION
-      );
-
-      stream.close();
-
-      expect(result).toBeTruthy();
-    });
-
     test('With invalid schema for key with fallback on', async () => {
       const producerOpts = {
         'metadata.broker.list': KAFKA_BROKER,
@@ -248,13 +212,16 @@ describe('E2E Test : src/kafka/producer.ts', () => {
 
       const stream = producerStream(producerOpts, {}, {});
 
+      const fallback = false;
+
       expect(() => produce(
         stream,
         schemas,
         TOPIC_NAME,
         value,
         key,
-        DEFAULT_PARTITION
+        DEFAULT_PARTITION,
+        fallback
       )).toThrow();
 
       stream.close();
