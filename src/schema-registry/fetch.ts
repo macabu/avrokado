@@ -14,7 +14,7 @@ export interface ISchemaRegistryResponse {
   schema: JSON;
 }
 
-interface IFetchSchemaFailedAxiosResponse {
+interface IFetchSchemaFailedGotResponse {
   status: number;
   statusText: string;
   method: string;
@@ -27,7 +27,7 @@ interface IFetchSchemaFailed {
   schemaVersion: SchemaVersion;
   type: SchemaFetchType;
   message: string;
-  axiosResponse: IFetchSchemaFailedAxiosResponse;
+  gotResponse: IFetchSchemaFailedGotResponse;
 }
 
 export const fetchSchema = async (

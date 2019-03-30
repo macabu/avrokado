@@ -1,4 +1,4 @@
-import axios from 'axios';
+import got from 'got';
 
 import { SCHEMA_REGISTRY_URL, TOPIC_NAME } from './constant';
 import { keySchema } from './schemas/mocktopic-key';
@@ -27,15 +27,14 @@ export const uploadSchema = async (
   type: 'key' | 'value'
 ) => {
   try {
-    await axios({
-      url: `${schemaRegistry}/subjects/${topic}-${type}/versions`,
-      method: 'POST',
+    await got.post(`${schemaRegistry}/subjects/${topic}-${type}/versions`, {
+      body: {
+        schema,
+      },
       headers: {
         'Content-Type': 'application/vnd.schemaregistry.v1+json',
       },
-      data: {
-        schema,
-      },
+      json: true,
     });
 
     return true;
@@ -49,10 +48,7 @@ const deleteSchema = async (
   type: 'key' | 'value'
 ) => {
   try {
-    await axios({
-      url: `${SCHEMA_REGISTRY_URL}/subjects/${topic}-${type}`,
-      method: 'DELETE',
-    });
+    await got.delete(`${SCHEMA_REGISTRY_URL}/subjects/${topic}-${type}`);
 
     return true;
   } catch (err) {
