@@ -19,6 +19,7 @@
     "sourceMap": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
+    "incremental": true,
     "outDir": "lib",
     "baseUrl": ".",
     "paths": {
