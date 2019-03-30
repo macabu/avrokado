@@ -3,7 +3,6 @@ import { ProducerStream, createWriteStream } from 'node-rdkafka';
 import { TopicsSchemas } from '../schema-registry/load-schemas';
 import { encodeAvroChunk } from '../schema-registry/avro-format';
 
-type CreateWriteStream = (conf: Object, topicConf: Object, streamOptions: Object) => ProducerStream;
 type TopicName = string;
 
 interface KafkaProducerMessage {
@@ -17,13 +16,51 @@ interface KafkaProducerMessage {
 
 export const DEFAULT_PARTITION = -1;
 
+export const encodeWithSchema = (
+  schemas: TopicsSchemas,
+  topic: TopicName,
+  type: 'key' | 'value',
+  data?: unknown,
+  fallback: boolean = false
+) => {
+  let encoded = Buffer.alloc(0);
+
+  if (schemas && schemas[topic]) {
+    try {
+      const schema = type === 'key'
+        ? schemas[topic].keySchema
+        : schemas[topic].valueSchema;
+
+      encoded = encodeAvroChunk(schema, data);
+    } catch {
+      // We swallow the error here, since if it fails
+      // `encoded` will be unchanged, and we handle
+      // that down below.
+    }
+  }
+
+  let send = encoded;
+  if (!encoded.length) {
+    if (!fallback) {
+      throw new TypeError('Schema not found to serialize data');
+    }
+
+    send = data
+      ? Buffer.isBuffer(data)
+        ? data
+        : Buffer.from(JSON.stringify(data))
+      : Buffer.alloc(0);
+  }
+
+  return send;
+};
+
 export const producerStream = (
   producerConfiguration: Object,
   defaultTopicConfiguration: Object = {},
-  streamOptions: Object = {},
-  writeStream: CreateWriteStream = createWriteStream
+  streamOptions: Object = {}
 ) => {
-  const producerStream = writeStream(
+  const producerStream = createWriteStream(
     producerConfiguration,
     defaultTopicConfiguration,
     Object.assign(streamOptions, { objectMode: true })
@@ -43,40 +80,8 @@ export const produce = (
   timestamp?: number,
   opaque?: Object
 ) => {
-  let encodedValue = Buffer.alloc(0);
-  let encodedKey = Buffer.alloc(0);
-
-  if (schemas[topic]) {
-    const valueSchema = schemas[topic].valueSchema;
-    const keySchema = schemas[topic].keySchema;
-
-    try {
-      encodedValue = encodeAvroChunk(valueSchema, value);
-      encodedKey = encodeAvroChunk(keySchema, key);
-    } catch (error) {
-      if (!fallback) {
-        throw error;
-      }
-    }
-  }
-
-  let sendValue = encodedValue;
-  if (!encodedValue.length) {
-    sendValue = value
-      ? Buffer.isBuffer(value)
-        ? value
-        : Buffer.from(JSON.stringify(value))
-      : Buffer.alloc(0);
-  }
-
-  let sendKey = encodedKey;
-  if (!encodedKey.length) {
-    sendKey = key
-      ? Buffer.isBuffer(key)
-        ? key
-        : Buffer.from(JSON.stringify(key))
-      : Buffer.alloc(0);
-  }
+  const sendValue = encodeWithSchema(schemas, topic, 'value', value, fallback);
+  const sendKey = encodeWithSchema(schemas, topic, 'key', key, fallback);
 
   const message = <KafkaProducerMessage>{
     topic,
@@ -85,9 +90,7 @@ export const produce = (
     key: sendKey,
   };
 
-  if (timestamp) {
-    message.timestamp = Date.now();
-  }
+  message.timestamp = timestamp || Date.now();
 
   if (opaque) {
     message.opaque = opaque;
