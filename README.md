@@ -107,16 +107,14 @@ consumerStream(
   consumerConfiguration: Object = {},
   defaultTopicConfiguration: Object = {},
   streamOptions: Object = {},
-  schemas: TopicsSchemas,
-  readStream: CreateReadStream = createReadStream
+  schemas: TopicsSchemas
 ): ConsumerStream;
 ```
 Where:
 - **consumerConfiguration**: `librdkafka`'s consumer-specific configuration;
 - **defaultTopicConfiguration**: `librdkafka`'s default topic configuration;
 - **streamOptions**: `librdkafka`'s read stream options;
-- **schemas**: An object with all `key` and `value` schemas (return from `loadSchemas`);
-- **readStream?**: The actual `librdkafka` `createReadStream` function. Will be created if not specified.
+- **schemas**: An object with all `key` and `value` schemas (return from `loadSchemas`).
 
 Returns a `ConsumerStream`, which extends from `Readable` stream.
 
@@ -130,12 +128,12 @@ Returns a `ConsumerStream`, which extends from `Readable` stream.
 And any other event emitted by a `ConsumerStream` from `node-rdkafka`.
   
 #### API
-Specifically for `avro` event emitted, it should be expected a `KafkaMessage` type, which contains:  
+Specifically for `avro` event emitted, it should be expected a `AvrokadoMessage` type, which contains:  
 
 | Variable        | Description                             |
 |-----------------|-----------------------------------------|
-| `rawValue`      | The raw value buffer                    |
-| `rawKey`        | The raw key buffer                      |
+| `value`         | The raw value buffer                    |
+| `key`           | The raw key buffer                      |
 | `size`          | Size in bytes of the raw message        |
 | `topic`         | Name of the topic                       |
 | `offset`        | Offset in which the message is          |
@@ -143,12 +141,12 @@ Specifically for `avro` event emitted, it should be expected a `KafkaMessage` ty
 | `timestamp`     | When the message was retrieved          |
 | `valueSchemaId` | Schema ID for the value                 |
 | `keySchemaId`   | Schema ID for the key                   |
-| `value`         | Avro-deserialized value (from rawValue) |
-| `key`           | Avro-deserialized key (from rawKey)     |  
+| `parsedValue`   | Avro-deserialized value (from value)    |
+| `parsedKey`     | Avro-deserialized key (from key)        |  
   
 #### Example
 ```js
-import { loadSchemas consumerStream, KafkaMessage } from 'avrokado';
+import { loadSchemas consumerStream, AvrokadoMessage } from 'avrokado';
 
 const consumerOpts = {
   'metadata.broker.list': 'kafka:9092',
@@ -182,10 +180,10 @@ const streamOptions = {
     schemas
   );
 
-  stream.on('avro', (data: KafkaMessage) => {
+  stream.on('avro', (data: AvrokadoMessage) => {
     console.log(`Received Message! (Offset: ${data.offset})`);
-    console.log(`Value: ${data.value}`);
-    console.log(`Key: ${data.key}`);
+    console.log(`Value: ${data.parsedValue}`);
+    console.log(`Key: ${data.parsedKey}`);
 
     stream.consumer.commitMessage(data);
   });
@@ -202,15 +200,13 @@ Please check their [**DOCUMENTATION**](https://github.com/Blizzard/node-rdkafka)
 producerStream = (
   producerConfiguration: Object,
   defaultTopicConfiguration: Object = {},
-  streamOptions: Object = {},
-  writeStream: CreateWriteStream = createWriteStream
+  streamOptions: Object = {}
 ) => ProducerStream;
 ```
 Where:
 - **producerConfiguration**: `librdkafka`'s producer-specific configuration;
 - **defaultTopicConfiguration?**: `librdkafka`'s default topic configuration;
-- **streamOptions?**: `librdkafka`'s read stream options;
-- **writeStream?**: The actual `librdkafka` `createWriteStream` function. Will be created if not specified.
+- **streamOptions?**: `librdkafka`'s read stream options.
 
 Returns a `ProducerStream`, which extends from `Writable` stream.
 
@@ -318,7 +314,7 @@ To run tests:
 4. Run `npm test` or `yarn test`.
 
 ## TODO
-- Add standard Producer.  
-- Remove `axios` dependency.
+- Add High Level Producer (waiting on node-rdkafka fix).  
 - Improve in-code documentation.
 - Write tests for Consumer.
+- Move all types and interfaces to a single file to share usage. (?)
