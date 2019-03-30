@@ -59,6 +59,6 @@
   "dependencies": {
     "avsc": "5.4.7",
     "got": "9.6.0",
-    "node-rdkafka": "2.5.1"
+    "node-rdkafka": "2.6.1"
   }
 }
