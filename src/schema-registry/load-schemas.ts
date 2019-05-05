@@ -3,11 +3,13 @@ import { Type, Schema } from 'avsc';
 import {
   fetchSchema,
   fetchSchemaVersions,
-  SchemaRegistryEndpoint,
-  TopicName,
   SchemaVersion,
   SchemaFetchType,
 } from './fetch';
+
+export type TopicsSchemas = { [topicName: string]: Schemas };
+export type TypeSchemas = { [schemaId: number]: SchemaObject };
+export type SchemaVersionsRequested = SchemaVersion | 'all';
 
 export interface SchemaObject {
   version: number;
@@ -18,15 +20,9 @@ export interface Schemas {
   keySchema: TypeSchemas;
 }
 
-export type TopicsSchemas = { [topicName: string]: Schemas };
-
-export type TypeSchemas = { [schemaId: number]: SchemaObject };
-
-export type SchemaVersionsRequested = SchemaVersion | 'all';
-
 export const loadSchemasByType = async (
-  schemaRegistryEndpoint: SchemaRegistryEndpoint,
-  topicName: TopicName,
+  schemaRegistryEndpoint: string,
+  topicName: string,
   schemaVersions: SchemaVersionsRequested,
   type: SchemaFetchType
 ) => {
@@ -90,8 +86,8 @@ export const loadSchemasByType = async (
 };
 
 export const loadSchemas = async (
-  schemaRegistryEndpoint: SchemaRegistryEndpoint,
-  topics: TopicName[] | TopicName,
+  schemaRegistryEndpoint: string,
+  topics: ReadonlyArray<string> | string,
   schemaVersions: SchemaVersionsRequested
 ) => {
   try {

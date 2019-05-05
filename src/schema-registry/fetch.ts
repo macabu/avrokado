@@ -1,10 +1,8 @@
 import got, { Response as GotResponse } from 'got';
 
-export type SchemaRegistryEndpoint = string;
-export type TopicName = string;
 export type SchemaVersion = 'latest' | number;
 export type SchemaFetchType = 'key' | 'value';
-export type SchemaFetchResponse<T> = T & Partial<IFetchSchemaFailed>;
+export type SchemaFetchResponse<T> = T | Partial<T>;
 export type SchemaFetchVersionsResponse = number[];
 
 export interface ISchemaRegistryResponse {
@@ -14,25 +12,9 @@ export interface ISchemaRegistryResponse {
   schema: JSON;
 }
 
-interface IFetchSchemaFailedGotResponse {
-  status: number;
-  statusText: string;
-  method: string;
-  path: string;
-  data: unknown;
-}
-
-interface IFetchSchemaFailed {
-  topicName: TopicName;
-  schemaVersion: SchemaVersion;
-  type: SchemaFetchType;
-  message: string;
-  gotResponse: IFetchSchemaFailedGotResponse;
-}
-
 export const fetchSchema = async (
-  schemaRegistryEndpoint: SchemaRegistryEndpoint,
-  topicName: TopicName,
+  schemaRegistryEndpoint: string,
+  topicName: string,
   schemaVersion: SchemaVersion,
   type: SchemaFetchType
 ) => {
@@ -57,7 +39,7 @@ export const fetchSchema = async (
       };
     }
 
-    return <SchemaFetchResponse<Partial<ISchemaRegistryResponse>>>{
+    return <SchemaFetchResponse<ISchemaRegistryResponse>>{
       topicName,
       schemaVersion,
       type,
@@ -76,8 +58,8 @@ export const fetchSchema = async (
 };
 
 export const fetchSchemaVersions = async (
-  schemaRegistryEndpoint: SchemaRegistryEndpoint,
-  topicName: TopicName,
+  schemaRegistryEndpoint: string,
+  topicName: string,
   type: SchemaFetchType
 ) => {
   try {
@@ -96,7 +78,7 @@ export const fetchSchemaVersions = async (
       return body;
     }
 
-    return <SchemaFetchResponse<Partial<unknown>>> {
+    return <SchemaFetchResponse<ISchemaRegistryResponse>>{
       topicName,
       type,
       message: 'Schema versions fetch failed abnormously!',

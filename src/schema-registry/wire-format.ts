@@ -1,12 +1,10 @@
 export type MagicByte = number | string;
 export type SchemaId = number | string;
-export type Data = Buffer;
 
 enum BufferSize {
   MIN = 0,
   MAX = 8192,
 }
-
 export enum WirePosition {
   MagicByte = 0x0,
   SchemaId = 0x1,
@@ -16,7 +14,7 @@ export enum WirePosition {
 export const MAGIC_BYTE = 0x0;
 
 export const encodeWireFormat = (
-  data: Data,
+  data: Buffer,
   schemaId: SchemaId,
   magicByte: MagicByte = MAGIC_BYTE
 ) => {

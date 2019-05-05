@@ -1,14 +1,12 @@
 import { Type } from 'avsc';
 
 import { TypeSchemas } from './load-schemas';
-
 import {
   encodeWireFormat,
   MAGIC_BYTE,
   WirePosition,
   SchemaId,
   MagicByte,
-  Data,
 } from './wire-format';
 
 export interface DecodedAvroChunk {
@@ -29,7 +27,7 @@ export const encodeAvro = (
 
     const bufData = schema.toBuffer(data);
 
-    return <Data>encodeWireFormat(bufData, schemaId, magicByte);
+    return encodeWireFormat(bufData, schemaId, magicByte);
   } catch (error) {
     throw error;
   }
@@ -38,7 +36,7 @@ export const encodeAvro = (
 export const decodeAvro = (
   schema: Type,
   schemaId: SchemaId,
-  data: Data,
+  data: Buffer,
   magicByte: MagicByte = MAGIC_BYTE
 ) => {
   try {
@@ -77,7 +75,7 @@ export const encodeAvroChunk = (
   if (schemas && Object.keys(<Object>schemas).length) {
     for (const schemaId in schemas) {
       try {
-        return <Data>encodeAvro(schemas[schemaId].schema, schemaId, data);
+        return encodeAvro(schemas[schemaId].schema, schemaId, data);
       } catch (error) {
         err = error;
         continue;
