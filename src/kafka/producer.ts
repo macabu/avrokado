@@ -3,10 +3,8 @@ import { ProducerStream, createWriteStream } from 'node-rdkafka';
 import { TopicsSchemas } from '../schema-registry/load-schemas';
 import { encodeAvroChunk } from '../schema-registry/avro-format';
 
-type TopicName = string;
-
 interface KafkaProducerMessage {
-  topic: TopicName;
+  topic: string;
   partition: number;
   value: Buffer;
   key: Buffer;
@@ -18,10 +16,10 @@ export const DEFAULT_PARTITION = -1;
 
 export const encodeWithSchema = (
   schemas: TopicsSchemas,
-  topic: TopicName,
+  topic: string,
   type: 'key' | 'value',
   data?: unknown,
-  fallback: boolean = false
+  fallback?: boolean
 ) => {
   let encoded = Buffer.alloc(0);
 
@@ -72,7 +70,7 @@ export const producerStream = (
 export const produce = (
   writeStream: ProducerStream,
   schemas: TopicsSchemas,
-  topic: TopicName,
+  topic: string,
   value?: unknown,
   key?: unknown,
   partition: number = DEFAULT_PARTITION,
