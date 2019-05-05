@@ -2,33 +2,7 @@ import { createReadStream } from 'node-rdkafka';
 
 import { TopicsSchemas } from '../schema-registry/load-schemas';
 import { decodeAvroChunk, DecodedAvroChunk } from '../schema-registry/avro-format';
-
-interface Chunk {
-  value: Buffer;
-  key: Buffer;
-  size: number;
-  topic: string;
-  offset: number;
-  partition: number;
-  timestamp: number;
-}
-
-export interface KafkaMessage {
-  value: Buffer;
-  key: Buffer;
-  size: number;
-  topic: string;
-  offset: number;
-  partition: number;
-  timestamp: number;
-}
-
-export interface AvrokadoMessage extends KafkaMessage {
-  valueSchemaId: number;
-  keySchemaId: number;
-  parsedValue: JSON & string & number;
-  parsedKey: JSON & string & number;
-}
+import { Chunk, AvrokadoMessage } from './message';
 
 export const consumerStream = (
   consumerConfiguration: Object = {},
