@@ -310,11 +310,10 @@ To run tests:
 1. Install `Docker`;
 2. Install `docker-compose`;
 3. Add `127.0.0.1 kafka` to your `/etc/hosts`;
-4. Start up the images with `docker-compose up -d`;
-4. Run `npm test` or `yarn test`.
+4. Start up the images with `docker-compose up -d` (and make sure zookeeper, kafka and schema-registry are all running);
+5. Run `npm test` or `yarn test`.
 
 ## TODO
 - Add High Level Producer (waiting on node-rdkafka fix).  
 - Improve in-code documentation.
 - Write tests for Consumer.
-- Move all types and interfaces to a single file to share usage. (?)
