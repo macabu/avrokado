@@ -12,6 +12,9 @@
 ## Table of Contents
 - [Installation](#installation)
 - [Usage](#usage)
+  - [loadSchemas](#loadSchemas)
+  - [consumerStream](#consumerStream)
+  - [AvroProducer](#AvroProducer)
 - [Tests](#tests)
 - [TODO](#TODO)
 
@@ -26,13 +29,10 @@ npm i avrokado --save
 yarn add avrokado --exact
 ```
 
-## Usage
-There are two functions currently exported by the package:  
+---
 
-- [loadSchemas](#loadSchemas)
-- [consumerStream](#consumerStream)
-- [producerStream](#producerStream)
-- [produce](#produce)
+## Usage
+For examples, please refer to the [examples folder](examples/).
 
 ### loadSchemas
 This will fetch the `key` and `value` schemas for a `topicName`.
@@ -71,7 +71,7 @@ And where `TypeSchemas` is an object of `SchemaObject`s:
 type TypeSchemas = { [schemaId: number]: SchemaObject };
 ```
 
-SchemaObject definition:
+`SchemaObject` definition:
 ```ts
 export interface SchemaObject {
   version: number;
@@ -79,23 +79,12 @@ export interface SchemaObject {
 }
 ```
 Where `Type` comes from [avsc](https://github.com/mtth/avsc) (it's basically the type used to define an Avro schema from a JavaScript `Object`).
-  
-#### Example
-```js
-import { loadSchemas } from 'avrokado';
-
-(async () => {
-  const sr = 'http://schema-registry:8081';
-  const topic = ['my-great-topic', 'my-so-so-topic'];
-  const version = 'latest';
-
-  const schemas = await loadSchemas(sr, topic, version);
-})();
-```
 
 #### Best Practices
 It is recommended to load the schemas **BEFORE** creating your Consumer or Producer.
-  
+
+---
+
 ### consumerStream
 This will create a consumer stream using [node-rdkafka](https://github.com/Blizzard/node-rdkafka).  
   
@@ -143,177 +132,74 @@ Specifically for `avro` event emitted, it should be expected a `AvroMessage` typ
 | `keySchemaId`   | Schema ID for the key                   |
 | `parsedValue`   | Avro-deserialized value (from value)    |
 | `parsedKey`     | Avro-deserialized key (from key)        |  
-  
-#### Example
-```js
-import { loadSchemas consumerStream, AvroMessage } from 'avrokado';
 
-const consumerOpts = {
-  'metadata.broker.list': 'kafka:9092',
-  'group.id': 'my-group-id',
-  'socket.nagle.disable': true,
-  'socket.keepalive.enable': true,
-  'enable.auto.commit': false,
-  'enable.auto.offset.store': true,
-  'log.connection.close': false,
-};
+---
 
-const consumerOffset = {
-  'auto.offset.reset': 'earliest',
-};
-
-const streamOptions = {
-  topics: ['simple-consumer-topic'],
-};
-
-(async () => {
-  const schemas = await loadSchemas(
-    'schema-registry:8081',
-    'simple-consumer-topic',
-    'latest'
-  );
-
-  const stream = consumerStream(
-    consumerOpts,
-    consumerOffset,
-    streamOptions,
-    schemas
-  );
-
-  stream.on('avro', (data: AvroMessage) => {
-    console.log(`Received Message! (Offset: ${data.offset})`);
-    console.log(`Value: ${data.parsedValue}`);
-    console.log(`Key: ${data.parsedKey}`);
-
-    stream.consumer.commitMessage(data);
-  });
-})();
-```
-
-### producerStream
-This will create a producer stream using [node-rdkafka](https://github.com/Blizzard/node-rdkafka).  
+### Producer
+This will create a producer using [node-rdkafka](https://github.com/Blizzard/node-rdkafka).  
   
 Please check their [**DOCUMENTATION**](https://github.com/Blizzard/node-rdkafka) since most of the options are from this library.
 
-#### Function Signature
+#### Class Signature
 ```js
-producerStream = (
-  producerConfiguration: Object,
-  defaultTopicConfiguration: Object = {},
-  streamOptions: Object = {}
-) => ProducerStream;
-```
-Where:
-- **producerConfiguration**: `librdkafka`'s producer-specific configuration;
-- **defaultTopicConfiguration?**: `librdkafka`'s default topic configuration;
-- **streamOptions?**: `librdkafka`'s read stream options.
-
-Returns a `ProducerStream`, which extends from `Writable` stream.
-
-#### Events Emitted
-| Event name    | Trigger/Description                                   |
-|---------------|-------------------------------------------------------|
-| `ready`       | When the Producer Stream is created                   |
-
-And any other event emitted by a `ProducerStream` from `node-rdkafka`.
-
-#### Example
-```js
-import { loadSchemas, producerStream } from 'avrokado';
-
-const producerOpts = {
-  'metadata.broker.list': 'kafka:9092',
-  'socket.nagle.disable': true,
-  'socket.keepalive.enable': true,
-  'log.connection.close': false,
-};
-
-(async () => {
-  const schemas = await loadSchemas(
-    'schema-registry:8081',
-    'simple-producer-topic',
-    'latest'
-  );
-
-  const stream = producerStream(producerOpts, {}, {});
-})();
-```
-
-### produce
-This will produce a message to Kafka using a `ProducerStream`, with the `value` and `key` encoded with `Avro`.  
-
-#### Function Signature
-```js
-produce = (
-  writeStream: ProducerStream,
+new AvroProducer(
+  conf: Object,
+  topicConf: Object,
   schemas: TopicsSchemas,
-  topic: TopicName,
-  value?: unknown,
-  key?: unknown,
-  partition: number = DEFAULT_PARTITION,
-  fallback: boolean = false,
-  timestamp?: number,
-  opaque?: Object
-) => boolean;
+  fallback?: boolean
+) => AvroProducer;
 ```
 Where:
-- **writeStream**: The actual `librdkafka` `createWriteStream` function. This is needed, since `avrokado` doesn't keep global state of created objects;
+- **conf**: `librdkafka`'s producer-specific configuration;
+- **topicConf?**: `librdkafka`'s default topic configuration;
 - **schemas**: An object with all `key` and `value` schemas (return from `loadSchemas`);
-- **topic**: Name of the topic to which the message will be produced to;
-- **value?**: Value for the Kafka message. If `null`, will not be serialized;
-- **key?**: Key for the Kafka message. If `null`, will not be serialized;
-- **partition?**: The topic partition to which the message will be produced to. If not sent, `DEFAULT_PARTITION` (`-1`) will be used;
-- **fallback?**: If the schema cannot be found or if serialization fails, fallback to `JSON.stringify` the `key`/`value`;
-- **timestamp?**: Timestamp for the creation of the message. If not sent, will default to `now`;
-- **opaque?**: Additional object or any data to be sent with the message. If not sent, will be `null`.
+- **fallback?**: If the schema cannot be found or if serialization fails, fallback to `JSON.stringify` the `key`/`value`.
 
-If the `key` or `value` fail serialization (i.e. schema not found), their raw data will be sent instead.
+Returns a `AvroProducer`, which extends from `Producer`.   
 
-Returns a `true` in case the message has been written to the stream. `false` in case of any errors.
+#### Methods
 
-#### Example
+**connect**
 ```js
-import { loadSchemas, producerStream } from 'avrokado';
-
-const producerOpts = {
-  'metadata.broker.list': 'kafka:9092',
-  'socket.nagle.disable': true,
-  'socket.keepalive.enable': true,
-  'log.connection.close': false,
-};
-
-(async () => {
-  const schemas = await loadSchemas(
-    'schema-registry:8081',
-    'simple-producer-topic',
-    'latest'
-  );
-
-  const stream = producerStream(producerOpts, {}, {});
-
-  produce(
-    stream,
-    schemas,
-    'simple-producer-topic',
-    value,
-    key,
-    DEFAULT_PARTITION,
-    false
-  );
-
-  stream.close();
-})();
+connect(
+  metadataOption: Object = {}
+) => Promise<true | Error>;
 ```
+The `connect` method will connect to the Kafka broker and `await` until a connection is successfully made or an error is thrown.  
+  
+**produce**
+```js
+produce(
+  topic: string,
+  partition?: number,
+  message?: unknown,
+  key?: unknown,
+  timestamp?: number,
+  opaque?: unknown
+) => void;
+```
+The `produce` method will produce a message to Kafka.  
+  
+**disconnect**
+```js
+disconnect(
+  timeout: number = 5000
+) => Promise<true | Error>;
+```
+The `disconnect` method will disconnect from the Kafka broker and `await` until it is gracefully interrupted.
+
+---
 
 ## Tests
-To run tests:
 1. Install `Docker`;
 2. Install `docker-compose`;
 3. Add `127.0.0.1 kafka` to your `/etc/hosts`;
-4. Start up the images with `docker-compose up -d` (and make sure zookeeper, kafka and schema-registry are all running);
+4. Start up the images with `docker-compose up -d`;  
+    - make sure zookeeper, kafka and schema-registry are all running;
 5. Run `npm test` or `yarn test`.
 
+---
+
 ## TODO
-- Add High Level Producer (waiting on node-rdkafka fix).  
 - Improve in-code documentation.
 - Write tests for Consumer.
