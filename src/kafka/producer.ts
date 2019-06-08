@@ -74,12 +74,12 @@ export class AvroProducer extends Producer {
     this.produce = this.newProduce;
 
     // FIXME: Find a way to 'force' type signature.
-    this.oldConnect = super.connect as any;
-    this.connect = this.newConnect as any;
+    this.oldConnect = super.connect as any; // tslint:disable-line: no-any
+    this.connect = this.newConnect as any; // tslint:disable-line: no-any
 
     // FIXME: Find a way to 'force' type signature.
-    this.oldDisconnect = super.disconnect as any;
-    this.disconnect = this.newDisconnect as any;
+    this.oldDisconnect = super.disconnect as any; // tslint:disable-line: no-any
+    this.disconnect = this.newDisconnect as any; // tslint:disable-line: no-any
   }
 
   private newProduce(
