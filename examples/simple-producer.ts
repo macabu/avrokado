@@ -1,5 +1,5 @@
 import { loadSchemas } from '../lib/schema-registry';
-import { producerStream, produce, DEFAULT_PARTITION } from '../lib/kafka';
+import { AvroProducer, DEFAULT_PARTITION } from '../lib/kafka';
 
 const producerOpts = {
   'metadata.broker.list': 'kafka:9092',
@@ -15,25 +15,25 @@ const startProducer = async () => {
     'latest'
   );
 
-  const value = {
-    test: 'hello',
+  const message = {
+    cat: 'dog',
   };
 
   const key = 'my-key';
 
-  const stream = producerStream(producerOpts, {}, {});
+  const producer = new AvroProducer(producerOpts, {}, schemas);
 
-  produce(
-    stream,
-    schemas,
-    'simple-producer-topic',
-    value,
-    key,
+  await producer.connect();
+
+  producer.produce(
+    'test',
     DEFAULT_PARTITION,
-    false
+    message,
+    key,
+    Date.now()
   );
 
-  stream.close();
+  await producer.disconnect();
 };
 
 startProducer();

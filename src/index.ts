@@ -6,7 +6,6 @@ export {
   consumerStream,
   AvroMessage,
   KafkaMessage,
-  producerStream,
   DEFAULT_PARTITION,
-  produce
+  AvroProducer,
 } from './kafka';

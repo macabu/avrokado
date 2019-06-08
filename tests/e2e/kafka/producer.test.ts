@@ -1,6 +1,6 @@
 import { loadSchemasForTopic, cleanupSchemas } from '../../utils/create-schema';
 import { loadSchemas } from '../../../src/schema-registry';
-import { producerStream, produce, DEFAULT_PARTITION } from '../../../src/kafka/producer';
+import { AvroProducer, DEFAULT_PARTITION } from '../../../src/kafka/producer';
 import { KAFKA_BROKER, SCHEMA_REGISTRY_URL, TOPIC_NAME, TOPIC_VALUES } from '../../utils/constant';
 
 describe('E2E Test : src/kafka/producer.ts', () => {
@@ -34,18 +34,18 @@ describe('E2E Test : src/kafka/producer.ts', () => {
 
       const key = 'my-key';
 
-      const stream = producerStream(producerOpts, {});
+      const producer = new AvroProducer(producerOpts, {}, schemas);
 
-      const result = produce(
-        stream,
-        schemas,
+      await producer.connect();
+
+      const result = producer.produce(
         TOPIC_NAME,
+        DEFAULT_PARTITION,
         value,
-        key,
-        DEFAULT_PARTITION
+        key
       );
 
-      stream.close();
+      await producer.disconnect();
 
       expect(result).toBeTruthy();
     });
@@ -68,17 +68,18 @@ describe('E2E Test : src/kafka/producer.ts', () => {
 
       const key = 'my-key';
 
-      const stream = producerStream(producerOpts);
+      const producer = new AvroProducer(producerOpts, {}, schemas);
 
-      const result = produce(
-        stream,
-        schemas,
+      await producer.connect();
+
+      const result = producer.produce(
         TOPIC_NAME,
+        DEFAULT_PARTITION,
         value,
         key
       );
 
-      stream.close();
+      await producer.disconnect();
 
       expect(result).toBeTruthy();
     });
@@ -101,19 +102,18 @@ describe('E2E Test : src/kafka/producer.ts', () => {
 
       const key = Buffer.from('my-key');
 
-      const stream = producerStream(producerOpts);
+      const producer = new AvroProducer(producerOpts, {}, schemas, true);
 
-      const result = produce(
-        stream,
-        schemas,
+      await producer.connect();
+
+      const result = producer.produce(
         TOPIC_NAME,
-        value,
-        key,
         DEFAULT_PARTITION,
-        true
+        value,
+        key
       );
 
-      stream.close();
+      await producer.disconnect();
 
       expect(result).toBeTruthy();
     });
@@ -136,19 +136,18 @@ describe('E2E Test : src/kafka/producer.ts', () => {
 
       const key = null;
 
-      const stream = producerStream(producerOpts);
+      const producer = new AvroProducer(producerOpts, {}, schemas, true);
 
-      const result = produce(
-        stream,
-        schemas,
+      await producer.connect();
+
+      const result = producer.produce(
         TOPIC_NAME,
-        value,
-        key,
         DEFAULT_PARTITION,
-        true
+        value,
+        key
       );
 
-      stream.close();
+      await producer.disconnect();
 
       expect(result).toBeTruthy();
     });
@@ -173,19 +172,18 @@ describe('E2E Test : src/kafka/producer.ts', () => {
         invalid: 'yes',
       };
 
-      const stream = producerStream(producerOpts, {}, {});
+      const producer = new AvroProducer(producerOpts, {}, schemas, true);
 
-      const result = produce(
-        stream,
-        schemas,
+      await producer.connect();
+
+      const result = producer.produce(
         TOPIC_NAME,
-        value,
-        key,
         DEFAULT_PARTITION,
-        true
+        value,
+        key
       );
 
-      stream.close();
+      await producer.disconnect();
 
       expect(result).toBeTruthy();
     });
@@ -210,21 +208,20 @@ describe('E2E Test : src/kafka/producer.ts', () => {
         invalid: 'yes',
       };
 
-      const stream = producerStream(producerOpts, {}, {});
-
       const fallback = false;
 
-      expect(() => produce(
-        stream,
-        schemas,
+      const producer = new AvroProducer(producerOpts, {}, schemas, fallback);
+
+      await producer.connect();
+
+      expect(() => producer.produce(
         TOPIC_NAME,
-        value,
-        key,
         DEFAULT_PARTITION,
-        fallback
+        value,
+        key
       )).toThrow();
 
-      stream.close();
+      await producer.disconnect();
     });
 
     test('With invalid schema for value with fallback on', async () => {
@@ -247,19 +244,18 @@ describe('E2E Test : src/kafka/producer.ts', () => {
 
       const key = 'test';
 
-      const stream = producerStream(producerOpts, {}, {});
+      const producer = new AvroProducer(producerOpts, {}, schemas, true);
 
-      const result = produce(
-        stream,
-        schemas,
+      await producer.connect();
+
+      const result = producer.produce(
         TOPIC_NAME,
-        value,
-        key,
         DEFAULT_PARTITION,
-        true
+        value,
+        key
       );
 
-      stream.close();
+      await producer.disconnect();
 
       expect(result).toBeTruthy();
     });
@@ -282,23 +278,22 @@ describe('E2E Test : src/kafka/producer.ts', () => {
 
       const key = 'my-key';
 
-      const stream = producerStream(producerOpts, {}, {});
+      const producer = new AvroProducer(producerOpts, {}, schemas, true);
+
+      await producer.connect();
 
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      const result = produce(
-        stream,
-        schemas,
+      const result = producer.produce(
         TOPIC_NAME,
+        DEFAULT_PARTITION,
         value,
         key,
-        DEFAULT_PARTITION,
-        true,
         new Date().getTime(),
         {}
       );
 
-      stream.close();
+      await producer.disconnect();
 
       expect(result).toBeTruthy();
     });
