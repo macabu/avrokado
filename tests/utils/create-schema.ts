@@ -4,18 +4,18 @@ import { SCHEMA_REGISTRY_URL, TOPIC_NAME } from './constant';
 import { keySchema } from './schemas/mocktopic-key';
 import { valueSchema } from './schemas/mocktopic-value';
 
-export const loadSchemasForTopic = async () => {
+export const loadSchemasForTopic = async (topic: string = TOPIC_NAME) => {
   const resultValue =
-    await uploadSchema(SCHEMA_REGISTRY_URL, TOPIC_NAME, JSON.stringify(valueSchema), 'value');
+    await uploadSchema(SCHEMA_REGISTRY_URL, topic, JSON.stringify(valueSchema), 'value');
   const resultKey =
-    await uploadSchema(SCHEMA_REGISTRY_URL, TOPIC_NAME, JSON.stringify(keySchema), 'key');
+    await uploadSchema(SCHEMA_REGISTRY_URL, topic, JSON.stringify(keySchema), 'key');
 
   return (resultValue && resultKey);
 };
 
-export const cleanupSchemas = async () => {
-  const resultValue = await deleteSchema(TOPIC_NAME, 'value');
-  const resultKey = await deleteSchema(TOPIC_NAME, 'key');
+export const cleanupSchemas = async (topic: string = TOPIC_NAME) => {
+  const resultValue = await deleteSchema(topic, 'value');
+  const resultKey = await deleteSchema(topic, 'key');
 
   return (resultValue && resultKey);
 };

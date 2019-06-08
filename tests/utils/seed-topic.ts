@@ -1,9 +1,8 @@
 import { loadSchemas } from '../../src/schema-registry';
-import { producerStream, produce, DEFAULT_PARTITION } from '../../src/kafka';
+import { AvroProducer, DEFAULT_PARTITION } from '../../src/kafka';
 import {
   KAFKA_BROKER,
   SCHEMA_REGISTRY_URL,
-  TOPIC_NAME,
   TOPIC_VALUES,
   TOPIC_KEYS,
 } from './constant';
@@ -19,30 +18,30 @@ const producerOpts = {
 };
 
 export const seedTopic = async () => {
-  const result = await loadSchemasForTopic();
+  const topic = 'random-topic';
 
-  if (!result) {
-    throw new Error('Could not upload schemas to schema registry. Exiting...');
-  }
+  await loadSchemasForTopic(topic);
 
   const schemas = await loadSchemas(
     SCHEMA_REGISTRY_URL,
-    TOPIC_NAME,
+    topic,
     'latest'
   );
 
-  const stream = producerStream(producerOpts, {}, {});
+  const producer = new AvroProducer(producerOpts, {}, schemas);
+
+  await producer.connect();
 
   for (const value of TOPIC_VALUES) {
-    produce(
-      stream,
-      schemas,
-      TOPIC_NAME,
+    producer.produce(
+      topic,
+      DEFAULT_PARTITION,
       value,
-      TOPIC_KEYS[0],
-      DEFAULT_PARTITION
+      TOPIC_KEYS[0]
     );
   }
 
-  stream.close();
+  await producer.disconnect();
+
+  return topic;
 };

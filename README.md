@@ -202,4 +202,3 @@ The `disconnect` method will disconnect from the Kafka broker and `await` until 
 
 ## TODO
 - Improve in-code documentation.
-- Write tests for Consumer.
