@@ -18,7 +18,7 @@ export interface KafkaMessage {
   timestamp: number;
 }
 
-export interface AvrokadoMessage extends KafkaMessage {
+export interface AvroMessage extends KafkaMessage {
   valueSchemaId: number;
   keySchemaId: number;
   parsedValue: JSON & string & number;

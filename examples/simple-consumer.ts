@@ -1,5 +1,5 @@
 import { loadSchemas } from '../lib/schema-registry';
-import { consumerStream, AvrokadoMessage } from '../lib/kafka';
+import { consumerStream, AvroMessage } from '../lib/kafka';
 
 const consumerOpts = {
   'metadata.broker.list': 'kafka:9092',
@@ -28,7 +28,7 @@ const startConsumer = async () => {
 
   const stream = consumerStream(consumerOpts, consumerOffset, streamOptions, schemas);
 
-  stream.on('avro', (data: AvrokadoMessage) => {
+  stream.on('avro', (data: AvroMessage) => {
     console.log(`Received Message! (Offset: ${data.offset})`);
     console.log(`Value: ${data.value}`);
     console.log(`Key: ${data.key}`);

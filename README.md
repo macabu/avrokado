@@ -128,7 +128,7 @@ Returns a `ConsumerStream`, which extends from `Readable` stream.
 And any other event emitted by a `ConsumerStream` from `node-rdkafka`.
   
 #### API
-Specifically for `avro` event emitted, it should be expected a `AvrokadoMessage` type, which contains:  
+Specifically for `avro` event emitted, it should be expected a `AvroMessage` type, which contains:  
 
 | Variable        | Description                             |
 |-----------------|-----------------------------------------|
@@ -146,7 +146,7 @@ Specifically for `avro` event emitted, it should be expected a `AvrokadoMessage`
   
 #### Example
 ```js
-import { loadSchemas consumerStream, AvrokadoMessage } from 'avrokado';
+import { loadSchemas consumerStream, AvroMessage } from 'avrokado';
 
 const consumerOpts = {
   'metadata.broker.list': 'kafka:9092',
@@ -180,7 +180,7 @@ const streamOptions = {
     schemas
   );
 
-  stream.on('avro', (data: AvrokadoMessage) => {
+  stream.on('avro', (data: AvroMessage) => {
     console.log(`Received Message! (Offset: ${data.offset})`);
     console.log(`Value: ${data.parsedValue}`);
     console.log(`Key: ${data.parsedKey}`);

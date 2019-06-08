@@ -2,7 +2,7 @@ import { createReadStream } from 'node-rdkafka';
 
 import { TopicsSchemas } from '../schema-registry/load-schemas';
 import { decodeAvroChunk, DecodedAvroChunk } from '../schema-registry/avro-format';
-import { Chunk, AvrokadoMessage } from './message';
+import { Chunk, AvroMessage } from './message';
 
 export const consumerStream = (
   consumerConfiguration: Object = {},
@@ -31,7 +31,7 @@ export const consumerStream = (
         schemaId: keySchemaId,
       } = <DecodedAvroChunk>decodeAvroChunk(keySchema, chunk.key);
 
-      consumerStream.emit('avro', <AvrokadoMessage>{
+      consumerStream.emit('avro', <AvroMessage>{
         ...chunk,
         parsedValue,
         parsedKey,

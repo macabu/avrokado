@@ -4,7 +4,7 @@ export {
 
 export {
   consumerStream,
-  AvrokadoMessage,
+  AvroMessage,
   KafkaMessage,
   producerStream,
   DEFAULT_PARTITION,
