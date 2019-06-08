@@ -41,11 +41,6 @@ export const consumerStream = (
     }
   });
 
-  consumerStream.consumer.on(
-    'event.error',
-    (error: Error) => consumerStream.emit('event.error', error)
-  );
-
   consumerStream.emit('ready');
 
   return consumerStream;
