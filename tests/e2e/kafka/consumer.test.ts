@@ -52,7 +52,6 @@ describe('E2E Test : src/kafka/consumer.ts', () => {
         name: 'Hound',
         age: 4,
         breed: 'Beagle',
-        createdAt: 1560004212324,
         owner: {
           string: 'Alex',
         },
@@ -60,6 +59,6 @@ describe('E2E Test : src/kafka/consumer.ts', () => {
 
       expect(consumed[0].parsedKey).toStrictEqual('my-first-key');
       expect(consumed[0].parsedValue).toMatchObject(expectedValue);
-    });
+    }, 30000);
   });
 });
