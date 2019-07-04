@@ -21,10 +21,10 @@ export const encodeWithSchema = (
         : schemas[topic].valueSchema;
 
       encoded = encodeAvroChunk(schema, data);
-    } catch {
-      // We swallow the error here, since if it fails
-      // `encoded` will be unchanged, and we handle
-      // that down below.
+    } catch (err) {
+      if (!fallback) {
+        throw err;
+      }
     }
   }
 
