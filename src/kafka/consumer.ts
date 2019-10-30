@@ -1,13 +1,15 @@
 import { Readable } from 'stream';
 import { createReadStream, ConsumerStream } from 'node-rdkafka';
 
-import { TopicsSchemas } from '../schema-registry/load-schemas';
+import { TopicsSchemas } from '../schema-registry';
 import { decodeAvroChunk, DecodedAvroChunk } from '../schema-registry/avro-format';
 import { Chunk, AvroMessage } from './message';
 
+// Need to extend from ConsumerStream, however it is not exported as a class,
+// but an interface. But I don't want to implement its methods, only inherit.
 export class AvroConsumer extends Readable {
   private schemas: TopicsSchemas;
-  private stream: ConsumerStream;
+  public stream: ConsumerStream;
 
   constructor(conf: Object, topicConf: Object, streamOpts: Object, schemas: TopicsSchemas) {
     super();
@@ -23,8 +25,8 @@ export class AvroConsumer extends Readable {
     this.stream.on('end', () => this.emit('end'));
   }
 
-  public close() {
-    this.stream.close();
+  public close(cb?: Function) {
+    this.stream.close(cb);
   }
 
   private decoder(chunk: Chunk) {

@@ -1,5 +1,5 @@
-import { loadSchemas } from '../lib/schema-registry';
-import { consumerStream, AvroMessage } from '../lib/kafka';
+import { SchemaRegistry } from '../lib/schema-registry';
+import { AvroConsumer, AvroMessage } from '../lib/kafka';
 
 const consumerOpts = {
   'metadata.broker.list': 'kafka:9092',
@@ -20,20 +20,23 @@ const streamOptions = {
 };
 
 const startConsumer = async () => {
-  const schemas = await loadSchemas(
+  const sr = new SchemaRegistry(
     'schema-registry:8081',
     'simple-consumer-topic',
     'latest'
   );
 
-  const stream = consumerStream(consumerOpts, consumerOffset, streamOptions, schemas);
+  await sr.load();
 
-  stream.on('avro', (data: AvroMessage) => {
+  const avroConsumer = new AvroConsumer(consumerOpts, consumerOffset, streamOptions, sr.schemas);
+
+  avroConsumer.on('avro', (data: AvroMessage) => {
     console.log(`Received Message! (Offset: ${data.offset})`);
     console.log(`Value: ${data.value}`);
     console.log(`Key: ${data.key}`);
 
-    stream.consumer.commitMessage(data);
+    // This is ugly.
+    avroConsumer.stream.consumer.commitMessage(data);
   });
 };
 
