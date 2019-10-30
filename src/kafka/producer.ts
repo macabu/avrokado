@@ -5,45 +5,6 @@ import { encodeAvroChunk } from '../schema-registry/avro-format';
 
 export const DEFAULT_PARTITION = -1;
 
-export const encodeWithSchema = (
-  schemas: TopicsSchemas,
-  topic: string,
-  type: 'key' | 'value',
-  data?: unknown,
-  fallback?: boolean
-) => {
-  let encoded = Buffer.alloc(0);
-
-  if (schemas && schemas[topic]) {
-    try {
-      const schema = type === 'key'
-        ? schemas[topic].keySchema
-        : schemas[topic].valueSchema;
-
-      encoded = encodeAvroChunk(schema, data);
-    } catch (err) {
-      if (!fallback) {
-        throw err;
-      }
-    }
-  }
-
-  let send = encoded;
-  if (!encoded.length) {
-    if (!fallback) {
-      throw new TypeError('Schema not found to serialize data');
-    }
-
-    send = data
-      ? Buffer.isBuffer(data)
-        ? data
-        : Buffer.from(JSON.stringify(data))
-      : Buffer.alloc(0);
-  }
-
-  return send;
-};
-
 export class AvroProducer extends Producer {
   private schemas: TopicsSchemas;
   private fallback: boolean;
@@ -90,8 +51,8 @@ export class AvroProducer extends Producer {
     timestamp?: number,
     opaque?: unknown
   ) {
-    const sendValue = encodeWithSchema(this.schemas, topic, 'value', message, this.fallback);
-    const sendKey = encodeWithSchema(this.schemas, topic, 'key', key, this.fallback);
+    const sendValue = this.encode(topic, 'value', message);
+    const sendKey = this.encode(topic, 'key', key);
 
     return this.oldProduce(topic, partition, sendValue, sendKey, timestamp, opaque);
   }
@@ -118,5 +79,38 @@ export class AvroProducer extends Producer {
         reject(err);
       });
     });
+  }
+
+  private encode = (topic: string, type: 'key' | 'value', data?: unknown) => {
+    let encoded = Buffer.alloc(0);
+
+    if (this.schemas && this.schemas[topic]) {
+      try {
+        const schema = type === 'key'
+          ? this.schemas[topic].keySchema
+          : this.schemas[topic].valueSchema;
+
+        encoded = encodeAvroChunk(schema, data);
+      } catch (err) {
+        if (!this.fallback) {
+          throw err;
+        }
+      }
+    }
+
+    let send = encoded;
+    if (!encoded.length) {
+      if (!this.fallback) {
+        throw new TypeError('Schema not found to serialize data');
+      }
+
+      send = data
+        ? Buffer.isBuffer(data)
+          ? data
+          : Buffer.from(JSON.stringify(data))
+        : Buffer.alloc(0);
+    }
+
+    return send;
   }
 }
