@@ -4,7 +4,6 @@ jobs:
     working_directory: ~/avrokado
     machine:
         enabled: true
-        docker_layer_caching: true
     steps:
       - checkout
       - run: |
@@ -20,7 +19,6 @@ jobs:
           echo 'export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"' >> $BASH_ENV
       - run: pip install docker-compose~=1.23.0
       - run: sudo apt-get update && sudo apt-get -y install libsasl2-dev libssl-dev
-      - run: echo 127.0.0.1 kafka | sudo tee -a /etc/hosts
       - run: docker-compose up -d
       - run: yarn install
       - run: yarn lint
