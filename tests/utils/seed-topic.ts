@@ -1,4 +1,4 @@
-import { loadSchemas } from '../../src/schema-registry';
+import { SchemaRegistry } from '../../src/schema-registry';
 import { AvroProducer, DEFAULT_PARTITION } from '../../src/kafka';
 import {
   KAFKA_BROKER,
@@ -22,13 +22,15 @@ export const seedTopic = async () => {
 
   await loadSchemasForTopic(topic);
 
-  const schemas = await loadSchemas(
+  const sr = new SchemaRegistry(
     SCHEMA_REGISTRY_URL,
     topic,
     'latest'
   );
 
-  const producer = new AvroProducer(producerOpts, {}, schemas);
+  await sr.load();
+
+  const producer = new AvroProducer(producerOpts, {}, sr.schemas);
 
   await producer.connect();
 

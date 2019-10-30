@@ -6,7 +6,7 @@ import {
   SCHEMA_REGISTRY_URL,
   TOPIC_NAME
 } from '../../utils/constant';
-import { loadSchemasByType, loadSchemas } from '../../../src/schema-registry/load-schemas';
+import { SchemaRegistry } from '../../../src/schema-registry/schema-registry';
 
 describe('E2E Test : src/schema-registry/load-schema.ts', () => {
   beforeAll(async () => {
@@ -18,53 +18,18 @@ describe('E2E Test : src/schema-registry/load-schema.ts', () => {
     }
   });
 
-  describe('loadSchemasByType', () => {
-    test('Loading the latest value schema version', async () => {
-      expect.assertions(4);
-
-      const response = await loadSchemasByType(
-        SCHEMA_REGISTRY_URL,
-        TOPIC_NAME,
-        'latest',
-        'value'
-      );
-
-      const schema = response[1].schema;
-
-      expect(typeof response).toBe('object');
-      expect(response[1]).toBeTruthy();
-      expect(response[1]).toHaveProperty('version');
-      expect(schema).toHaveProperty('fields');
-    });
-
-    test('Loading a single value schema version which does not exist', async () => {
-      expect.assertions(1);
-
-      await expect(
-        loadSchemasByType(
-          SCHEMA_REGISTRY_URL,
-          TOPIC_NAME,
-          0,
-          'value'
-        )
-      ).rejects.toThrowError();
-    });
-  });
-
   describe('loadSchemas', () => {
     test('Loading the latest value and key schema version', async () => {
       expect.assertions(6);
 
-      const response = await loadSchemas(
-        SCHEMA_REGISTRY_URL,
-        TOPIC_NAME,
-        'latest'
-      );
+      const sr = new SchemaRegistry(SCHEMA_REGISTRY_URL, TOPIC_NAME, 'latest');
 
-      const valueSchemas = response[TOPIC_NAME].valueSchema;
-      const keySchemas = response[TOPIC_NAME].keySchema;
+      await sr.load();
 
-      expect(typeof response).toBe('object');
+      const valueSchemas = sr.schemas[TOPIC_NAME].valueSchema;
+      const keySchemas = sr.schemas[TOPIC_NAME].keySchema;
+
+      expect(typeof sr).toBe('object');
       expect(typeof valueSchemas).toBe('object');
       expect(typeof keySchemas).toBe('object');
       expect(keySchemas[2]).toBeTruthy();
@@ -75,9 +40,9 @@ describe('E2E Test : src/schema-registry/load-schema.ts', () => {
     test('When a schema doesnt exist', async () => {
       expect.assertions(1);
 
-      await expect(
-        loadSchemas(SCHEMA_REGISTRY_URL, ['fail-topic'], 'latest')
-      ).rejects.toThrowError();
+      const sr = new SchemaRegistry(SCHEMA_REGISTRY_URL, ['fail-topic'], 'latest');
+
+      await expect(sr.load()).rejects.toThrowError();
     });
   });
 

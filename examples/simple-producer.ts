@@ -1,4 +1,4 @@
-import { loadSchemas } from '../lib/schema-registry';
+import { SchemaRegistry } from '../lib/schema-registry';
 import { AvroProducer, DEFAULT_PARTITION } from '../lib/kafka';
 
 const producerOpts = {
@@ -9,11 +9,13 @@ const producerOpts = {
 };
 
 const startProducer = async () => {
-  const schemas = await loadSchemas(
+  const sr = new SchemaRegistry(
     'schema-registry:8081',
     'simple-producer-topic',
     'latest'
   );
+
+  await sr.load();
 
   const message = {
     cat: 'dog',
@@ -21,7 +23,7 @@ const startProducer = async () => {
 
   const key = 'my-key';
 
-  const producer = new AvroProducer(producerOpts, {}, schemas);
+  const producer = new AvroProducer(producerOpts, {}, sr.schemas);
 
   await producer.connect();
 

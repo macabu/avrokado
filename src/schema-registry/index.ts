@@ -1,1 +1,1 @@
-export * from './load-schemas';
+export * from './schema-registry';

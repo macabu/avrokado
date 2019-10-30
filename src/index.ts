@@ -1,5 +1,5 @@
 export {
-  loadSchemas,
+  SchemaRegistry,
 } from './schema-registry';
 
 export {

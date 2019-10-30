@@ -1,5 +1,5 @@
 import { loadSchemasForTopic, cleanupSchemas } from '../../utils/create-schema';
-import { loadSchemas } from '../../../src/schema-registry';
+import { SchemaRegistry } from '../../../src/schema-registry';
 import { AvroProducer, DEFAULT_PARTITION } from '../../../src/kafka/producer';
 import { KAFKA_BROKER, SCHEMA_REGISTRY_URL, TOPIC_NAME, TOPIC_VALUES } from '../../utils/constant';
 
@@ -24,17 +24,19 @@ describe('E2E Test : src/kafka/producer.ts', () => {
         'log.connection.close': false,
       };
 
-      const schemas = await loadSchemas(
+      const sr = new SchemaRegistry(
         SCHEMA_REGISTRY_URL,
         TOPIC_NAME,
         'latest'
       );
 
+      await sr.load();
+
       const value = TOPIC_VALUES.shift();
 
       const key = 'my-key';
 
-      const producer = new AvroProducer(producerOpts, {}, schemas);
+      const producer = new AvroProducer(producerOpts, {}, sr.schemas);
 
       await producer.connect();
 
@@ -58,17 +60,19 @@ describe('E2E Test : src/kafka/producer.ts', () => {
         'log.connection.close': false,
       };
 
-      const schemas = await loadSchemas(
+      const sr = new SchemaRegistry(
         SCHEMA_REGISTRY_URL,
         TOPIC_NAME,
         'latest'
       );
 
+      await sr.load();
+
       const value = TOPIC_VALUES.shift();
 
       const key = 'my-key';
 
-      const producer = new AvroProducer(producerOpts, {}, schemas);
+      const producer = new AvroProducer(producerOpts, {}, sr.schemas);
 
       await producer.connect();
 
@@ -92,17 +96,19 @@ describe('E2E Test : src/kafka/producer.ts', () => {
         'log.connection.close': false,
       };
 
-      const schemas = await loadSchemas(
+      const sr = new SchemaRegistry(
         SCHEMA_REGISTRY_URL,
         TOPIC_NAME,
         'latest'
       );
 
+      await sr.load();
+
       const value = Buffer.from('my-value');
 
       const key = Buffer.from('my-key');
 
-      const producer = new AvroProducer(producerOpts, {}, schemas, true);
+      const producer = new AvroProducer(producerOpts, {}, sr.schemas, true);
 
       await producer.connect();
 
@@ -126,17 +132,19 @@ describe('E2E Test : src/kafka/producer.ts', () => {
         'log.connection.close': false,
       };
 
-      const schemas = await loadSchemas(
+      const sr = new SchemaRegistry(
         SCHEMA_REGISTRY_URL,
         TOPIC_NAME,
         'latest'
       );
 
+      await sr.load();
+
       const value = Buffer.from('my-value');
 
       const key = null;
 
-      const producer = new AvroProducer(producerOpts, {}, schemas, true);
+      const producer = new AvroProducer(producerOpts, {}, sr.schemas, true);
 
       await producer.connect();
 
@@ -160,11 +168,13 @@ describe('E2E Test : src/kafka/producer.ts', () => {
         'log.connection.close': false,
       };
 
-      const schemas = await loadSchemas(
+      const sr = new SchemaRegistry(
         SCHEMA_REGISTRY_URL,
         TOPIC_NAME,
         'latest'
       );
+
+      await sr.load();
 
       const value = TOPIC_VALUES.shift();
 
@@ -172,7 +182,7 @@ describe('E2E Test : src/kafka/producer.ts', () => {
         invalid: 'yes',
       };
 
-      const producer = new AvroProducer(producerOpts, {}, schemas, true);
+      const producer = new AvroProducer(producerOpts, {}, sr.schemas, true);
 
       await producer.connect();
 
@@ -196,11 +206,13 @@ describe('E2E Test : src/kafka/producer.ts', () => {
         'log.connection.close': false,
       };
 
-      const schemas = await loadSchemas(
+      const sr = new SchemaRegistry(
         SCHEMA_REGISTRY_URL,
         TOPIC_NAME,
         'latest'
       );
+
+      await sr.load();
 
       const value = TOPIC_VALUES.shift();
 
@@ -210,7 +222,7 @@ describe('E2E Test : src/kafka/producer.ts', () => {
 
       const fallback = false;
 
-      const producer = new AvroProducer(producerOpts, {}, schemas, fallback);
+      const producer = new AvroProducer(producerOpts, {}, sr.schemas, fallback);
 
       await producer.connect();
 
@@ -232,11 +244,13 @@ describe('E2E Test : src/kafka/producer.ts', () => {
         'log.connection.close': false,
       };
 
-      const schemas = await loadSchemas(
+      const sr = new SchemaRegistry(
         SCHEMA_REGISTRY_URL,
         TOPIC_NAME,
         'latest'
       );
+
+      await sr.load();
 
       const value = {
         invalid: 'schema',
@@ -244,7 +258,7 @@ describe('E2E Test : src/kafka/producer.ts', () => {
 
       const key = 'test';
 
-      const producer = new AvroProducer(producerOpts, {}, schemas, true);
+      const producer = new AvroProducer(producerOpts, {}, sr.schemas, true);
 
       await producer.connect();
 
@@ -268,17 +282,19 @@ describe('E2E Test : src/kafka/producer.ts', () => {
         'log.connection.close': false,
       };
 
-      const schemas = await loadSchemas(
+      const sr = new SchemaRegistry(
         SCHEMA_REGISTRY_URL,
         TOPIC_NAME,
         'latest'
       );
 
+      await sr.load();
+
       const value = TOPIC_VALUES.shift();
 
       const key = 'my-key';
 
-      const producer = new AvroProducer(producerOpts, {}, schemas, true);
+      const producer = new AvroProducer(producerOpts, {}, sr.schemas, true);
 
       await producer.connect();
 

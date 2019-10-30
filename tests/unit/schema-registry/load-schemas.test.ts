@@ -1,6 +1,6 @@
 import nock from 'nock';
 
-import { loadSchemasByType, loadSchemas } from '../../../src/schema-registry/load-schemas';
+import { SchemaRegistry } from '../../../src/schema-registry/schema-registry';
 
 nock('http://mock-schema-registry:1234')
   .persist()
@@ -53,6 +53,9 @@ nock('http://mock-schema-registry:1234')
   .get('/subjects/fail-topic-value/versions/latest')
   .reply(404)
   .persist()
+  .get('/subjects/fail-topic-key/versions/latest')
+  .reply(404)
+  .persist()
   .get('/subjects/success-topic-value/versions')
   .reply(200, [2, 1])
   .persist()
@@ -61,95 +64,18 @@ nock('http://mock-schema-registry:1234')
   .persist();
 
 describe('Unit Test : src/schema-registry/load-schemas.ts', () => {
-  describe('loadSchemasByType', () => {
-    test('Loading the latest value schema version', async () => {
-      expect.assertions(5);
-
-      const response = await loadSchemasByType(
-        'http://mock-schema-registry:1234',
-        'success-topic',
-        'latest',
-        'value'
-      );
-
-      const schema = JSON.parse(response[263]!.schema as unknown as string);
-
-      expect(typeof response).toBe('object');
-      expect(response[263]).toBeTruthy();
-      expect(response[263]).toHaveProperty('version', 2);
-      expect(schema).toHaveProperty('type', 'record');
-      expect(schema).toHaveProperty('fields');
-    });
-
-    test('Loading all value schema versions', async () => {
-      expect.assertions(7);
-
-      const response = await loadSchemasByType(
-        'http://mock-schema-registry:1234',
-        'success-topic',
-        'all',
-        'value'
-      );
-
-      const firstSchema = JSON.parse(response[262]!.schema as unknown as string);
-      const latestSchema = JSON.parse(response[263]!.schema as unknown as string);
-
-      expect(typeof response).toBe('object');
-      expect(response[262]).toBeTruthy();
-      expect(response[263]).toBeTruthy();
-      expect(response[262]).toHaveProperty('version', 1);
-      expect(response[263]).toHaveProperty('version', 2);
-      expect(firstSchema).toHaveProperty('type', 'record');
-      expect(latestSchema).toHaveProperty('type', 'record');
-    });
-
-    test('Loading a single value schema version', async () => {
-      expect.assertions(5);
-
-      const response = await loadSchemasByType(
-        'http://mock-schema-registry:1234',
-        'success-topic',
-        2,
-        'value'
-      );
-
-      const schema = JSON.parse(response[263]!.schema as unknown as string);
-
-      expect(typeof response).toBe('object');
-      expect(response[263]).toBeTruthy();
-      expect(response[263]).toHaveProperty('version', 2);
-      expect(schema).toHaveProperty('type', 'record');
-      expect(schema).toHaveProperty('fields');
-    });
-
-    test('Loading a single value schema version which does not exist', async () => {
-      expect.assertions(1);
-
-      await expect(
-        loadSchemasByType(
-          'http://mock-schema-registry:1234',
-          'success-topic',
-          3,
-          'value'
-        )
-      ).rejects.toThrowError();
-    });
-  });
-
   describe('loadSchemas', () => {
     test('Loading the latest value and key schema version', async () => {
       expect.assertions(6);
 
-      const response = await loadSchemas(
-        'http://mock-schema-registry:1234',
-        'success-topic',
-        'latest'
-      );
+      const sr = new SchemaRegistry('http://mock-schema-registry:1234', 'success-topic', 'latest');
 
-      const valueSchemas = response['success-topic'].valueSchema;
-      const keySchemas = response['success-topic'].keySchema;
+      await sr.load();
 
-      expect(typeof response).toBe('object');
+      const valueSchemas = sr.schemas['success-topic'].valueSchema;
+      const keySchemas = sr.schemas['success-topic'].keySchema;
+
+      expect(typeof sr).toBe('object');
       expect(typeof valueSchemas).toBe('object');
       expect(typeof keySchemas).toBe('object');
       expect(keySchemas[3]).toBeTruthy();
@@ -160,9 +86,9 @@ describe('Unit Test : src/schema-registry/load-schemas.ts', () => {
     test('When a schema doesnt exist', async () => {
       expect.assertions(1);
 
-      await expect(
-        loadSchemas('http://mock-schema-registry:1234', ['fail-topic'], 'latest')
-      ).rejects.toThrowError();
+      const sr = new SchemaRegistry('http://mock-schema-registry:1234', ['fail-topic'], 'latest');
+
+      await expect(sr.load()).rejects.toThrowError();
     });
   });
 });

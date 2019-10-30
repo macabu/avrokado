@@ -1,13 +1,13 @@
 import nock from 'nock';
 import { Type, Schema } from 'avsc';
 
-import { loadSchemas } from '../../../src/schema-registry/load-schemas';
 import {
   encodeAvro,
   decodeAvro,
   encodeAvroChunk,
   decodeAvroChunk,
 } from '../../../src/schema-registry/avro-format';
+import { SchemaRegistry } from '../../../src/schema-registry/schema-registry';
 
 nock('http://mock-schema-registry:1234')
   .persist()
@@ -530,16 +530,18 @@ describe('Integration Test : src/schema-registry/avro-format.ts', () => {
 
       const magicByte = 0x0;
 
-      const allSchemas = await loadSchemas(
+      const sr = new SchemaRegistry(
         'http://mock-schema-registry:1234',
         'success-topic',
         'latest'
       );
 
+      await sr.load();
+
       const encoded = encodeAvro(schema, schemaId, data, magicByte);
 
       const { decoded, schemaId: dSchemaId } =
-        decodeAvroChunk(allSchemas['success-topic'].valueSchema, encoded);
+        decodeAvroChunk(sr.schemas['success-topic'].valueSchema, encoded);
 
       expect(decoded).toMatchObject(data);
       expect(dSchemaId).toBe(schemaId);
@@ -566,16 +568,18 @@ describe('Integration Test : src/schema-registry/avro-format.ts', () => {
 
       const magicByte = 0x0;
 
-      const allSchemas = await loadSchemas(
+      const sr = new SchemaRegistry(
         'http://mock-schema-registry:1234',
         'success-topic',
         'all'
       );
 
+      await sr.load();
+
       const encoded = encodeAvro(schema, schemaId, data, magicByte);
 
       const { decoded, schemaId: dSchemaId } =
-        decodeAvroChunk(allSchemas['success-topic'].valueSchema, encoded);
+        decodeAvroChunk(sr.schemas['success-topic'].valueSchema, encoded);
 
       expect(decoded).toMatchObject(data);
       expect(dSchemaId).toBe(schemaId);
@@ -602,16 +606,18 @@ describe('Integration Test : src/schema-registry/avro-format.ts', () => {
 
       const magicByte = 0x1;
 
-      const allSchemas = await loadSchemas(
+      const sr = new SchemaRegistry(
         'http://mock-schema-registry:1234',
         'success-topic',
         'all'
       );
 
+      sr.load();
+
       const encoded = encodeAvro(schema, schemaId, data, magicByte);
 
       expect(() => {
-        decodeAvroChunk(allSchemas['success-topic'].valueSchema, encoded);
+        decodeAvroChunk(sr.schemas['success-topic'].valueSchema, encoded);
       }).toThrow();
     });
 
@@ -652,14 +658,16 @@ describe('Integration Test : src/schema-registry/avro-format.ts', () => {
         name: 'Kiara',
       };
 
-      const allSchemas = await loadSchemas(
+      const sr = new SchemaRegistry(
         'http://mock-schema-registry:1234',
         'success-topic',
         'latest'
       );
 
+      await sr.load();
+
       const encodedValue =
-        encodeAvroChunk(allSchemas['success-topic'].valueSchema, data);
+        encodeAvroChunk(sr.schemas['success-topic'].valueSchema, data);
 
       expect(encodedValue).toBeTruthy();
       expect(typeof encodedValue).toBe('object');
@@ -675,14 +683,16 @@ describe('Integration Test : src/schema-registry/avro-format.ts', () => {
         age: 1,
       };
 
-      const allSchemas = await loadSchemas(
+      const sr = new SchemaRegistry(
         'http://mock-schema-registry:1234',
         'success-topic',
         'all'
       );
 
+      await sr.load();
+
       const encodedValue =
-        encodeAvroChunk(allSchemas['success-topic'].valueSchema, data);
+        encodeAvroChunk(sr.schemas['success-topic'].valueSchema, data);
 
       expect(encodedValue).toBeTruthy();
       expect(typeof encodedValue).toBe('object');
@@ -716,14 +726,16 @@ describe('Integration Test : src/schema-registry/avro-format.ts', () => {
 
       const data = 'Kiara';
 
-      const allSchemas = await loadSchemas(
+      const sr = new SchemaRegistry(
         'http://mock-schema-registry:1234',
         'success-topic',
         'all'
       );
 
+      await sr.load();
+
       expect(() => {
-        encodeAvroChunk(allSchemas['success-topic'].valueSchema, data);
+        encodeAvroChunk(sr.schemas['success-topic'].valueSchema, data);
       }).toThrow();
     });
   });
