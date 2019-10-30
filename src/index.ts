@@ -3,9 +3,8 @@ export {
 } from './schema-registry';
 
 export {
-  consumerStream,
   AvroMessage,
-  KafkaMessage,
-  DEFAULT_PARTITION,
   AvroProducer,
+  AvroConsumer,
+  DEFAULT_PARTITION,
 } from './kafka';

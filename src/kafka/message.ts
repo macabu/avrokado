@@ -8,7 +8,7 @@ export interface Chunk {
   timestamp: number;
 }
 
-export interface KafkaMessage {
+interface KafkaMessage {
   value: Buffer;
   key: Buffer;
   size: number;

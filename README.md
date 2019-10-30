@@ -13,7 +13,7 @@
 - [Installation](#installation)
 - [Usage](#usage)
   - [loadSchemas](#loadSchemas)
-  - [consumerStream](#consumerStream)
+  - [AvroConsumer](#AvroConsumer)
   - [AvroProducer](#AvroProducer)
 - [Tests](#tests)
 - [TODO](#TODO)
@@ -85,34 +85,33 @@ It is recommended to load the schemas **BEFORE** creating your Consumer or Produ
 
 ---
 
-### consumerStream
+### AvroConsumer
 This will create a consumer stream using [node-rdkafka](https://github.com/Blizzard/node-rdkafka).  
   
 Please check their [**DOCUMENTATION**](https://github.com/Blizzard/node-rdkafka) since most of the options are from this library.
 
-#### Function Signature
+#### Class Signature
 ```js
-consumerStream(
-  consumerConfiguration: Object = {},
-  defaultTopicConfiguration: Object = {},
-  streamOptions: Object = {},
+new AvroConsumer(
+  conf: Object,
+  topicConf: Object,
   schemas: TopicsSchemas
-): ConsumerStream;
+) => AvroConsumer;
 ```
 Where:
 - **consumerConfiguration**: `librdkafka`'s consumer-specific configuration;
 - **defaultTopicConfiguration**: `librdkafka`'s default topic configuration;
-- **streamOptions**: `librdkafka`'s read stream options;
+- **streamOpts**: `librdkafka`'s read stream options;
 - **schemas**: An object with all `key` and `value` schemas (return from `loadSchemas`).
 
-Returns a `ConsumerStream`, which extends from `Readable` stream.
+Returns a `AvroConsumer`, which extends from `Readable` stream.
 
 #### Events Emitted
 | Event name    | Trigger/Description                                   |
 |---------------|-------------------------------------------------------|
 | `avro`        | Whenever a message is parsed with Avro                |
 | `ready`       | When the Consumer Stream is created                   |
-| `event.error` | Wraps `ConsumerStream.consumer`'s `event.error` event |  
+| `event.error` | Wraps `ConsumerStream.consumer`'s `event.error` event |
 
 And any other event emitted by a `ConsumerStream` from `node-rdkafka`.
   
@@ -193,9 +192,8 @@ The `disconnect` method will disconnect from the Kafka broker and `await` until 
 ## Tests
 1. Install `Docker`;
 2. Install `docker-compose`;
-3. Start up the images with `docker-compose up -d`;  
-    - make sure zookeeper, kafka and schema-registry are all running;
-4. Run `npm test` or `yarn test`.
+3. Start up the images with `docker-compose up -d` and make sure zookeeper, kafka and schema-registry are all running;
+4. Run `npm run test` or `yarn test`.
 
 ---
 

@@ -1,10 +1,10 @@
 import { loadSchemas } from '../../../src/schema-registry';
-import { consumerStream, AvroMessage } from '../../../src/kafka';
+import { AvroConsumer, AvroMessage } from '../../../src/kafka';
 import { KAFKA_BROKER, SCHEMA_REGISTRY_URL } from '../../utils/constant';
 import { seedTopic } from '../../utils/seed-topic';
 
 describe('E2E Test : src/kafka/consumer.ts', () => {
-  describe('consumerStream', () => {
+  describe('AvroConsumer', () => {
     test('With valid schemas for both key and value', async () => {
       const topic = await seedTopic();
 
@@ -32,7 +32,7 @@ describe('E2E Test : src/kafka/consumer.ts', () => {
         topics: [topic],
       };
 
-      const stream = consumerStream(consumerOpts, consumerOffset, streamOptions, schemas);
+      const stream = new AvroConsumer(consumerOpts, consumerOffset, streamOptions, schemas);
 
       const consumed = <AvroMessage[]>[];
 
