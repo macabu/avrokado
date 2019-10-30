@@ -193,10 +193,9 @@ The `disconnect` method will disconnect from the Kafka broker and `await` until 
 ## Tests
 1. Install `Docker`;
 2. Install `docker-compose`;
-3. Add `127.0.0.1 kafka` to your `/etc/hosts`;
-4. Start up the images with `docker-compose up -d`;  
+3. Start up the images with `docker-compose up -d`;  
     - make sure zookeeper, kafka and schema-registry are all running;
-5. Run `npm test` or `yarn test`.
+4. Run `npm test` or `yarn test`.
 
 ---
 
