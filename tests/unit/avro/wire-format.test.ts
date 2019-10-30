@@ -1,4 +1,4 @@
-import { encodeWireFormat } from '../../../src/schema-registry/wire-format';
+import { encodeWireFormat } from '../../../src/avro/wire-format';
 
 describe('Unit Test : src/schema-registry/wire-format.ts', () => {
   describe('encodeWireFormat', () => {

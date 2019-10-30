@@ -1,6 +1,6 @@
 import nock from 'nock';
 
-import { SchemaRegistry } from '../../../src/schema-registry/schema-registry';
+import { SchemaRegistry } from '../../../src/schema-registry';
 
 nock('http://mock-schema-registry:1234')
   .persist()

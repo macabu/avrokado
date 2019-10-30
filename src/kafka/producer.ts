@@ -1,7 +1,7 @@
 import { Producer } from 'node-rdkafka';
 
 import { TopicsSchemas } from '../schema-registry';
-import { encodeAvroChunk } from '../schema-registry/avro-format';
+import { encodeAvroChunk } from '../avro/avro-format';
 
 export const DEFAULT_PARTITION = -1;
 

@@ -6,7 +6,7 @@ import {
   SCHEMA_REGISTRY_URL,
   TOPIC_NAME
 } from '../../utils/constant';
-import { SchemaRegistry } from '../../../src/schema-registry/schema-registry';
+import { SchemaRegistry } from '../../../src/schema-registry';
 
 describe('E2E Test : src/schema-registry/load-schema.ts', () => {
   beforeAll(async () => {

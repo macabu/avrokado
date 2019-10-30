@@ -6,8 +6,8 @@ import {
   decodeAvro,
   encodeAvroChunk,
   decodeAvroChunk,
-} from '../../../src/schema-registry/avro-format';
-import { SchemaRegistry } from '../../../src/schema-registry/schema-registry';
+} from '../../../src/avro/avro-format';
+import { SchemaRegistry } from '../../../src/schema-registry';
 
 nock('http://mock-schema-registry:1234')
   .persist()

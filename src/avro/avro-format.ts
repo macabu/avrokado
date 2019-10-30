@@ -1,6 +1,6 @@
 import { Type } from 'avsc';
 
-import { TypeSchemas } from './schema-registry';
+import { TypeSchemas } from '../schema-registry';
 import {
   encodeWireFormat,
   MAGIC_BYTE,

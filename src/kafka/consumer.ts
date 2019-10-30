@@ -2,7 +2,7 @@ import { Readable } from 'stream';
 import { createReadStream, ConsumerStream } from 'node-rdkafka';
 
 import { TopicsSchemas } from '../schema-registry';
-import { decodeAvroChunk, DecodedAvroChunk } from '../schema-registry/avro-format';
+import { decodeAvroChunk, DecodedAvroChunk } from '../avro/avro-format';
 import { Chunk, AvroMessage } from './message';
 
 // Need to extend from ConsumerStream, however it is not exported as a class,

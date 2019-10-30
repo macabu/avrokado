@@ -12,7 +12,7 @@
 ## Table of Contents
 - [Installation](#installation)
 - [Usage](#usage)
-  - [loadSchemas](#loadSchemas)
+  - [SchemaRegistry](#SchemaRegistry)
   - [AvroConsumer](#AvroConsumer)
   - [AvroProducer](#AvroProducer)
 - [Tests](#tests)
@@ -34,51 +34,35 @@ yarn add avrokado --exact
 ## Usage
 For examples, please refer to the [examples folder](examples/).
 
-### loadSchemas
+### SchemaRegistry
 This will fetch the `key` and `value` schemas for a `topicName`.
 
-#### Function Signature
+#### Class Signature
 ```js
-async loadSchemas (
-  schemaRegistryEndpoint: SchemaRegistryEndpoint,
-  topics: TopicName[] | TopicName,
-  schemaVersions: SchemaVersionsRequested
-) => TopicsSchemas;
+new SchemaRegistry (
+  endpoint: string,
+  topics: ReadonlyArray<string> | string,
+  version: number | 'latest' | 'all'
+) => SchemaRegistry;
 ```
 Where:
-- **schemaRegistryEndpoint**: Endpoint for your Schema Registry;
+- **endpoint**: Endpoint for your Schema Registry;
 - **topics**: Name of the topics (`Array`) or topic (`String`) you want to retrieve the schemas for;
-- **schemaVersions**: It can be either:
+- **version**: It can be either:
   - A `number`, which will then force the function to only fetch that version;
   - `all`, which means it will fetch `all` versions of the schemas;
   - `latest`, which will fetch only the `latest` schema versions.
-  
-Returns all the schemas fetched (`TopicsSchemas`), that have the format:
-```js
-type TopicsSchemas = { [topicName: string]: Schemas };
-```
 
-Where `Schemas` is an interface that contains the `value` and `key` schemas:
-```js
-interface Schemas {
-  valueSchema: TypeSchemas;
-  keySchema: TypeSchemas;
-}
-```
+#### Fields
+- **schemas**: Object containing the loaded schemas. 
 
-And where `TypeSchemas` is an object of `SchemaObject`s:
-```js
-type TypeSchemas = { [schemaId: number]: SchemaObject };
-```
+#### Methods
 
-`SchemaObject` definition:
-```ts
-export interface SchemaObject {
-  version: number;
-  schema: Type;
-}
+**load**
+```js
+async load() => Promise<void>;
 ```
-Where `Type` comes from [avsc](https://github.com/mtth/avsc) (it's basically the type used to define an Avro schema from a JavaScript `Object`).
+The `load` method will load all the schemas selected to memory, and can be accessed through the `schemas` field from the instanced class. 
 
 #### Best Practices
 It is recommended to load the schemas **BEFORE** creating your Consumer or Producer.
@@ -106,6 +90,9 @@ Where:
 
 Returns a `AvroConsumer`, which extends from `Readable` stream.
 
+#### Fields
+- **stream**: This is a `ConsumerStream` object from `node-rdkafka`, which has another field `consumer` for the `KafkaConsumer` itself (yes it's ugly).
+
 #### Events Emitted
 | Event name    | Trigger/Description                                   |
 |---------------|-------------------------------------------------------|
@@ -132,9 +119,12 @@ Specifically for `avro` event emitted, it should be expected a `AvroMessage` typ
 | `parsedValue`   | Avro-deserialized value (from value)    |
 | `parsedKey`     | Avro-deserialized key (from key)        |  
 
+#### Notes
+- To use the `KafkaConsumer` methods, for now you will need to do `AvroConsumer.stream.consumer`.
+
 ---
 
-### Producer
+### AvroProducer
 This will create a producer using [node-rdkafka](https://github.com/Blizzard/node-rdkafka).  
   
 Please check their [**DOCUMENTATION**](https://github.com/Blizzard/node-rdkafka) since most of the options are from this library.
