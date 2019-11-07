@@ -45,16 +45,16 @@
     ]
   },
   "devDependencies": {
-    "@types/got": "9.6.7",
-    "@types/jest": "24.0.21",
+    "@types/got": "9.6.9",
+    "@types/jest": "24.0.22",
     "@types/nock": "11.1.0",
     "codecov": "3.6.1",
     "jest": "24.9.0",
-    "nock": "11.6.0",
+    "nock": "11.7.0",
     "ts-jest": "24.1.0",
-    "tslint": "5.20.0",
+    "tslint": "5.20.1",
     "tslint-config-airbnb": "5.11.2",
-    "typescript": "3.6.4"
+    "typescript": "3.7.2"
   },
   "dependencies": {
     "avsc": "5.4.16",
