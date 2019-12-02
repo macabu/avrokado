@@ -44,6 +44,9 @@
       "**/tests/**/*.test.ts"
     ]
   },
+  "engines": {
+    "node": ">=10"
+  },
   "devDependencies": {
     "@types/got": "9.6.9",
     "@types/jest": "24.0.23",
