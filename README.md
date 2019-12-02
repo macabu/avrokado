@@ -134,15 +134,13 @@ Please check their [**DOCUMENTATION**](https://github.com/Blizzard/node-rdkafka)
 new AvroProducer(
   conf: Object,
   topicConf: Object,
-  schemas: TopicsSchemas,
-  fallback?: boolean
+  schemas: TopicsSchemas
 ) => AvroProducer;
 ```
 Where:
 - **conf**: `librdkafka`'s producer-specific configuration;
 - **topicConf?**: `librdkafka`'s default topic configuration;
-- **schemas**: An object with all `key` and `value` schemas (return from `loadSchemas`);
-- **fallback?**: If the schema cannot be found or if serialization fails, fallback to `JSON.stringify` the `key`/`value`.
+- **schemas**: An object with all `key` and `value` schemas (return from `loadSchemas`).
 
 Returns a `AvroProducer`, which extends from `Producer`.   
 

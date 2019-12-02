@@ -40,7 +40,7 @@ describe('E2E Test : src/kafka/producer.ts', () => {
 
       await producer.connect();
 
-      const result = producer.produce(
+      const result = await producer.produce(
         TOPIC_NAME,
         DEFAULT_PARTITION,
         value,
@@ -76,7 +76,7 @@ describe('E2E Test : src/kafka/producer.ts', () => {
 
       await producer.connect();
 
-      const result = producer.produce(
+      const result = await producer.produce(
         TOPIC_NAME,
         DEFAULT_PARTITION,
         value,
@@ -88,79 +88,7 @@ describe('E2E Test : src/kafka/producer.ts', () => {
       expect(result).toBeTruthy();
     });
 
-    test('With buffer for value and key', async () => {
-      const producerOpts = {
-        'metadata.broker.list': KAFKA_BROKER,
-        'socket.nagle.disable': true,
-        'socket.keepalive.enable': true,
-        'log.connection.close': false,
-      };
-
-      const sr = new SchemaRegistry(
-        SCHEMA_REGISTRY_URL,
-        TOPIC_NAME,
-        'latest'
-      );
-
-      await sr.load();
-
-      const value = Buffer.from('my-value');
-
-      const key = Buffer.from('my-key');
-
-      const producer = new AvroProducer(producerOpts, {}, sr.schemas, true);
-
-      await producer.connect();
-
-      const result = producer.produce(
-        TOPIC_NAME,
-        DEFAULT_PARTITION,
-        value,
-        key
-      );
-
-      await producer.disconnect();
-
-      expect(result).toBeTruthy();
-    });
-
-    test('With buffer for value and no key', async () => {
-      const producerOpts = {
-        'metadata.broker.list': KAFKA_BROKER,
-        'socket.nagle.disable': true,
-        'socket.keepalive.enable': true,
-        'log.connection.close': false,
-      };
-
-      const sr = new SchemaRegistry(
-        SCHEMA_REGISTRY_URL,
-        TOPIC_NAME,
-        'latest'
-      );
-
-      await sr.load();
-
-      const value = Buffer.from('my-value');
-
-      const key = null;
-
-      const producer = new AvroProducer(producerOpts, {}, sr.schemas, true);
-
-      await producer.connect();
-
-      const result = producer.produce(
-        TOPIC_NAME,
-        DEFAULT_PARTITION,
-        value,
-        key
-      );
-
-      await producer.disconnect();
-
-      expect(result).toBeTruthy();
-    });
-
-    test('With invalid schema for key with fallback on', async () => {
+    test('With invalid schema for key', async () => {
       const producerOpts = {
         'metadata.broker.list': KAFKA_BROKER,
         'socket.nagle.disable': true,
@@ -182,136 +110,18 @@ describe('E2E Test : src/kafka/producer.ts', () => {
         invalid: 'yes',
       };
 
-      const producer = new AvroProducer(producerOpts, {}, sr.schemas, true);
+      const producer = new AvroProducer(producerOpts, {}, sr.schemas);
 
       await producer.connect();
 
-      const result = producer.produce(
+      expect(producer.produce(
         TOPIC_NAME,
         DEFAULT_PARTITION,
         value,
         key
-      );
+      )).rejects.toThrow();
 
       await producer.disconnect();
-
-      expect(result).toBeTruthy();
-    });
-
-    test('With invalid schema for key with fallback off', async () => {
-      const producerOpts = {
-        'metadata.broker.list': KAFKA_BROKER,
-        'socket.nagle.disable': true,
-        'socket.keepalive.enable': true,
-        'log.connection.close': false,
-      };
-
-      const sr = new SchemaRegistry(
-        SCHEMA_REGISTRY_URL,
-        TOPIC_NAME,
-        'latest'
-      );
-
-      await sr.load();
-
-      const value = TOPIC_VALUES.shift();
-
-      const key = {
-        invalid: 'yes',
-      };
-
-      const fallback = false;
-
-      const producer = new AvroProducer(producerOpts, {}, sr.schemas, fallback);
-
-      await producer.connect();
-
-      expect(() => producer.produce(
-        TOPIC_NAME,
-        DEFAULT_PARTITION,
-        value,
-        key
-      )).toThrow();
-
-      await producer.disconnect();
-    });
-
-    test('With invalid schema for value with fallback on', async () => {
-      const producerOpts = {
-        'metadata.broker.list': KAFKA_BROKER,
-        'socket.nagle.disable': true,
-        'socket.keepalive.enable': true,
-        'log.connection.close': false,
-      };
-
-      const sr = new SchemaRegistry(
-        SCHEMA_REGISTRY_URL,
-        TOPIC_NAME,
-        'latest'
-      );
-
-      await sr.load();
-
-      const value = {
-        invalid: 'schema',
-      };
-
-      const key = 'test';
-
-      const producer = new AvroProducer(producerOpts, {}, sr.schemas, true);
-
-      await producer.connect();
-
-      const result = producer.produce(
-        TOPIC_NAME,
-        DEFAULT_PARTITION,
-        value,
-        key
-      );
-
-      await producer.disconnect();
-
-      expect(result).toBeTruthy();
-    });
-
-    test('With valid schemas for both key and value with additional metadata', async () => {
-      const producerOpts = {
-        'metadata.broker.list': KAFKA_BROKER,
-        'socket.nagle.disable': true,
-        'socket.keepalive.enable': true,
-        'log.connection.close': false,
-      };
-
-      const sr = new SchemaRegistry(
-        SCHEMA_REGISTRY_URL,
-        TOPIC_NAME,
-        'latest'
-      );
-
-      await sr.load();
-
-      const value = TOPIC_VALUES.shift();
-
-      const key = 'my-key';
-
-      const producer = new AvroProducer(producerOpts, {}, sr.schemas, true);
-
-      await producer.connect();
-
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      const result = producer.produce(
-        TOPIC_NAME,
-        DEFAULT_PARTITION,
-        value,
-        key,
-        new Date().getTime(),
-        {}
-      );
-
-      await producer.disconnect();
-
-      expect(result).toBeTruthy();
     });
   });
 
