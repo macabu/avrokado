@@ -35,13 +35,15 @@ export const seedTopic = async () => {
   await producer.connect();
 
   for (const value of TOPIC_VALUES) {
-    producer.produce(
+    await producer.produce(
       topic,
       DEFAULT_PARTITION,
       value,
       TOPIC_KEYS[0]
     );
   }
+
+  await producer.poll();
 
   await producer.disconnect();
 

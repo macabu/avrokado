@@ -28,13 +28,12 @@ export const uploadSchema = async (
 ) => {
   try {
     await got.post(`${schemaRegistry}/subjects/${topic}-${type}/versions`, {
-      body: {
+      json:{
         schema,
       },
       headers: {
         'Content-Type': 'application/vnd.schemaregistry.v1+json',
       },
-      json: true,
     });
 
     return true;

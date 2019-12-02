@@ -85,10 +85,11 @@ export class SchemaRegistry {
       endpoint += `/${version}`;
     }
 
-    const response = await got.get(endpoint, { json: true });
+    const response: GotResponse<T> =
+      await got.get(endpoint, got.mergeOptions({ responseType: 'json' }));
 
     if (response && response.body && response.statusCode === 200) {
-      const { body }: GotResponse<T> = response;
+      const { body } = response;
 
       if (!body.schema) {
         return body;

@@ -20,7 +20,7 @@ describe('E2E Test : src/schema-registry/load-schema.ts', () => {
 
   describe('loadSchemas', () => {
     test('Loading the latest value and key schema version', async () => {
-      expect.assertions(6);
+      expect.assertions(3);
 
       const sr = new SchemaRegistry(SCHEMA_REGISTRY_URL, TOPIC_NAME, 'latest');
 
@@ -32,9 +32,6 @@ describe('E2E Test : src/schema-registry/load-schema.ts', () => {
       expect(typeof sr).toBe('object');
       expect(typeof valueSchemas).toBe('object');
       expect(typeof keySchemas).toBe('object');
-      expect(keySchemas[2]).toBeTruthy();
-      expect(keySchemas[2]).toHaveProperty('version');
-      expect(keySchemas[2]).toHaveProperty('schema');
     });
 
     test('When a schema doesnt exist', async () => {
