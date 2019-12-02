@@ -1,7 +1,7 @@
 {
   "name": "avrokado",
-  "version": "0.5.1",
-  "description": "A Kafka client and Avro (de)serializer library",
+  "version": "0.5.2",
+  "description": "A Kafka client and Avro (de)serializer library based on node-rdkafka",
   "keywords": [
     "Kafka",
     "Avro",
@@ -46,19 +46,19 @@
   },
   "devDependencies": {
     "@types/got": "9.6.9",
-    "@types/jest": "24.0.22",
+    "@types/jest": "24.0.23",
     "@types/nock": "11.1.0",
     "codecov": "3.6.1",
     "jest": "24.9.0",
     "nock": "11.7.0",
-    "ts-jest": "24.1.0",
+    "ts-jest": "24.2.0",
     "tslint": "5.20.1",
     "tslint-config-airbnb": "5.11.2",
     "typescript": "3.7.2"
   },
   "dependencies": {
     "avsc": "5.4.16",
-    "got": "9.6.0",
-    "node-rdkafka": "2.7.0"
+    "got": "10.0.1",
+    "node-rdkafka": "2.7.4"
   }
 }
