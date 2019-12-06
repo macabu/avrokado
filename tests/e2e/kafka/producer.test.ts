@@ -52,6 +52,43 @@ describe('E2E Test : src/kafka/producer.ts', () => {
       expect(result).toBeTruthy();
     });
 
+    test('With valid schemas for both key and value but encoding as raw', async () => {
+      const producerOpts = {
+        'metadata.broker.list': KAFKA_BROKER,
+        'socket.nagle.disable': true,
+        'socket.keepalive.enable': true,
+        'log.connection.close': false,
+      };
+
+      const sr = new SchemaRegistry(
+        SCHEMA_REGISTRY_URL,
+        TOPIC_NAME,
+        'latest'
+      );
+
+      await sr.load();
+
+      const value = TOPIC_VALUES.shift();
+
+      const key = 'my-key';
+
+      const producer = new AvroProducer(producerOpts, {}, sr.schemas);
+
+      await producer.connect();
+
+      const result = await producer.produce(
+        TOPIC_NAME,
+        DEFAULT_PARTITION,
+        value,
+        key,
+        true,
+      );
+
+      await producer.disconnect();
+
+      expect(result).toBeTruthy();
+    });
+
     test('With valid schemas and default options', async () => {
       const producerOpts = {
         'metadata.broker.list': KAFKA_BROKER,

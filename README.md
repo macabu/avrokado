@@ -161,11 +161,12 @@ produce(
   partition?: number,
   message?: unknown,
   key?: unknown,
+  sendRaw?: boolean,
   timestamp?: number,
   opaque?: unknown
 ) => void;
 ```
-The `produce` method will produce a message to Kafka.  
+The `produce` method will produce a message to Kafka. If `sendRaw` is set to `true`, the message WILL NOT be avro encoded.
   
 **disconnect**
 ```js
