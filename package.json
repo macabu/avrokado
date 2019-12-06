@@ -1,6 +1,6 @@
 {
   "name": "avrokado",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "A Kafka client and Avro (de)serializer library based on node-rdkafka",
   "keywords": [
     "Kafka",
