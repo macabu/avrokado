@@ -27,8 +27,13 @@ export class AvroProducer extends Producer {
     timestamp?: number,
     opaque?: unknown
   ) {
-    const sendValue = sendRaw ? Buffer.from(JSON.stringify(message)) : this.encode(topic, 'value', message);
-    const sendKey = sendRaw ? Buffer.from(JSON.stringify(key)) : this.encode(topic, 'key', key);
+    const sendValue = sendRaw
+      ? Buffer.from(JSON.stringify(message))
+      : this.encode(topic, 'value', message);
+
+    const sendKey = sendRaw
+      ? Buffer.from(JSON.stringify(key))
+      : this.encode(topic, 'key', key);
 
     return new Promise((resolve, reject) => {
       try {
